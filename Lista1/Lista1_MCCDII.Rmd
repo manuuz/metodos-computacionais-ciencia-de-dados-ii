@@ -1,0 +1,386 @@
+---
+title: "Lista 1 Métodos Computacionais para Ciência de Dados II"
+author: "Emanuelle Oliveira, Maria Luiza Oliveira, Mariana Fleming"
+execute: 
+  echo: true
+  warning: false
+  message: false
+output:
+  pdf_document:
+    keep_tex: true
+  html_document: default
+---
+
+## Execício 1.4
+Implemente um algoritmo para fazer permutação utilizando o algoritmo para
+gerar uma amostra de uma variável categórica. Não utilize a função sample do R.
+
+## Solução.
+
+**1.** Armazene os valores em vetor de entrada e faça $n =$ tamanho do vetor;
+  
+**2.** Dentro de um _loop_ onde $j$ percorre os valores de $n$ até 2, faça: 
+  
+- Gere uma variável $i$ tal que seja o `floor()` - função que retorna o menor inteiro - da função $(Uniforme(0,1)*j)+1$
+- Em uma variável auxiliar salve o valor da posição $i$ do vetor criado no Passo 1 e troque-a com o valor da posição $j$ do vetor.
+  
+**3.** Retorne o vetor criado agora permutado.
+
+```{r permutacao}
+permutacao <- function(vetor){
+  vetor_aux <- vetor
+  n <- length(vetor_aux)
+  
+  for (j in n:2) {
+    i <- floor(runif(1, 0, 1) * j) + 1
+
+    temp <- vetor_aux[i]
+    vetor_aux[i] <- vetor_aux[j]
+    vetor_aux[j] <- temp
+  }
+  
+  return(vetor_aux)
+  
+}
+
+# Exemplo, vetor de 1 à 10
+vetor <- 1:10
+vetor_permutado <- permutacao(vetor)
+vetor_permutado
+
+```
+
+
+
+## Execício 1.5
+Implemente o algoritmo para gerar da distribuição geométrica.
+
+## Solução.
+
+Código inspirado pelo livro *Statistical Computing with R, Second Edition*.
+Nesse formato, estamos contabilizando o número da tentativa em que ocorre o primeiro sucesso.
+
+**1.** Gere $n$ valores de uma $Uniforme(0,1)$
+  
+**2.** Seja $p$ e $q=1-p$ parâmetros da distribuição Geométrica, calculamos:
+  
+- $P(X=i) = pq^{i-1}, i \ge 1$
+- $P(X \le j-1) =  \sum_{i=1}^{j-1}P(X=i) = 1-P(X > j-1) = 1-q^{j-1}, j \ge 1$
+- Geramos *K* por gerar $U \sim Uniforme(0,1)$ e faça $K=q$: $1-q^{j-1} \le U < 1-q^j$
+- Desenvolvendo essa conta, podemos ter $K = min\{j: q^j < 1-U \} = min\{j: j > \frac{log(1-U)}{log(q)} \}$
+- Então teremos $Int(\frac{log(U)}{log(q)})+1$
+  
+**3.** Calculamos *K* utilizando a formula `floor()` e retornamos.
+
+```{r rgeom}
+rgeom <- function(n,p){
+  U <- runif(n, 0, 1)
+  q <- 1 - p
+  
+  # Tentativas até o primeiro sucesso
+  K <- floor(log(U) / log(q))+1 
+  return(K)
+}
+
+# Exemplo de amostra de 10000 com p=0.25 e q=0.75
+n <- 10000
+p <- 0.25
+
+X <- rgeom(n, p)
+
+# Gráfico da Amostra
+hist(X,
+     prob = TRUE,
+     main = "Distribuição Geométrica (k >= 1)",
+     xlab = "Número de Tentativas (k)",
+     ylab = "Frequência Relativa")
+
+
+# Linha Teórica da distriguição geométrica
+x_vals <- 1:max(X)
+y_vals <- dgeom(x_vals - 1, prob = p)
+lines(x_vals, y_vals, col = "tomato3", lwd = 2)
+```
+
+## Execício 1.6
+Implemente a versão otimizada do algoritmo para gerar da distribuição Poisson e faça comparações do tempo computacional com o algoritmo inicial. Utilize o pacote `microbenchmark` para comparar.
+
+## Solução.
+
+Nessa solução iremos comparar 3 algoritmos para geração de amostras aleatórias da distribuição Poisson:
+
+- O algoritmo disponível no livro-texto da matéria *Métodos Computacionais Aplicados à Estatística. Implementação no Software R.*;
+- O algoritmo de *Knuth*, inspirado no livro *The Art of Computer Programming, Vol. 2*;
+- O algoritmo de Rejeição do *Atkison*, inspirado no artigo *The Computer Generation of Poisson Random Variables, A. C. Atkison*
+
+**Passo a Passo - Knuth**
+
+**1.** Faça $L = e^{-\lambda}$, $k=0$ e $p=1$
+
+**2.** Se $p \le L$, retorne $k-1$
+
+**3.** Se não, faça $k = k+1$, gere $u \sim Uniforme(0,1)$ e $p = p \times u$ enquanto $p>L$
+
+**Passo a Passo - Rejeição do Atkison**
+
+Parâmetros utilizados:
+
+- $\beta = \frac{\pi}{\sqrt{3\lambda}}$
+- $\alpha = \beta\lambda$
+-   $c<30 \rightarrow 0.767 - 3.36 / \lambda$
+  $$c > 30 = \begin{cases}
+  c>20 &\text{if } 0.5925 \\
+  c.c &\text{if } 0.6506
+  \end{cases}$$
+- $k = log(c) - \lambda - log(\beta)$
+
+**1.** Gere $U_1 \sim Uniforme(0,1)$ e faça $X = (\alpha - log{(1-U_1)/U_1})/\beta$
+
+**2.** Se $X < - \frac{1}{2}$, volte para o Passo 1
+
+**3.** Faça $N = [X+\frac{1}{2}]$, gere $U_2 \sim Uniforme(0,1)$
+
+**4.** Se $\alpha - \beta X + log(U_2/\{1+exp(\alpha-\beta X)\}^2) \le k+Nlog\lambda-logN!$, retorne $N$, caso contrário volte para o Passo 1
+
+```{r, fc_aux_poisson, echo=FALSE, warning=FALSE, message=FALSE}
+require(microbenchmark)
+require(ggplot2)
+library(patchwork)
+
+prob_plot <- function(lambda, amostra, freq_rel){
+  plot(freq_rel, 
+     main = paste("Lambda =", lambda), 
+     xlab = "x", 
+     ylab = "Frequência Relativa (Prob)")
+  points(0:max(amostra), 
+         dpois(0:max(amostra), lambda), 
+         col = "red", 
+         pch = 19,
+         cex = 0.8)
+}
+```
+
+```{r, poisson_algoritmos}
+set.seed(233)
+n <- 10000
+lambda_p <- 5
+lambda_g <- 150
+
+# Livro Referência -----------------------------------------------
+rpoisson_aux_livro <- function(lambda){
+  u <- runif(1, 0, 1)
+  i <- 0; pr <- exp(-lambda); Fx = pr
+  while(u >= Fx){
+    pr <- pr*lambda/(i+1)
+    Fx <- Fx + pr
+    i <- i+1
+  }
+  return(i)
+}
+
+rpoisson_livro <- function(n, lambda){
+  replicate(n, expr = rpoisson_aux_livro(lambda), simplify = TRUE)
+}
+
+par(mfrow = c(1, 2), mar = c(4, 4, 2, 1))
+
+amostra_p <- rpoisson_livro(n, lambda_p)
+freq_rel_p <- prop.table(table(amostra_p))
+prob_plot(lambda_p, amostra_p, freq_rel_p)
+
+amostra_g <- rpoisson_livro(n, lambda_g)
+freq_rel_g <- prop.table(table(amostra_g))
+prob_plot(lambda_g, amostra_g, freq_rel_g)
+
+# Knuth ----------------------------------------------------------
+rpoisson_aux_knuth <- function(lambda){
+  L <- exp(-lambda); k <- 0; p <- 1
+  
+  while(p > L){
+    k <- k+1
+    u <- runif(1, 0, 1)
+    p <- p*u
+  }
+  
+  return(k-1)
+}
+
+
+rpoisson_knuth <- function(n, lambda){
+  replicate(n, expr = rpoisson_aux_knuth(lambda), simplify = TRUE)
+}
+
+par(mfrow = c(1, 2), mar = c(4, 4, 2, 1))
+
+amostra_p <- rpoisson_knuth(n, lambda_p)
+freq_rel_p <- prop.table(table(amostra_p))
+prob_plot(lambda_p, amostra_p, freq_rel_p)
+
+
+amostra_g <- rpoisson_knuth(n, lambda_g)
+freq_rel_g <- prop.table(table(amostra_g))
+prob_plot(lambda_g, amostra_g, freq_rel_g)
+
+
+# Rejeição Atkison -------------------------------------------------------------------
+
+rpoisson_aux_PA <- function(lambda) {
+  if (lambda < 30) {
+    if (lambda < 20) c <- 0.5925
+    else c <- 0.6506
+  } else {
+    c <- 0.767 - 3.36 / lambda
+  }
+  
+  beta <- pi / sqrt(3 * lambda)
+  alpha <- beta * lambda
+  k <- log(c) - lambda - log(beta)
+  
+  while (TRUE) {
+    U1 <- runif(1)
+    X <- (alpha - log((1 - U1) / U1)) / beta
+    
+    if (X >= -0.5) {
+      N <- floor(X + 0.5)
+      
+      U2 <- runif(1)
+      param <- alpha - beta * X + log(U2 / (1 + exp(alpha - beta * X))^2)
+      log_factorial_N <- ifelse(N == 0, 0, lfactorial(N))
+      
+      poisson_form <- k + N * log(lambda) - log_factorial_N
+      
+      if (param <= poisson_form) {
+        return(N)
+      }
+    }
+  }
+}
+
+rpoisson_PA <- function(n, lambda){
+  replicate(n, expr = rpoisson_aux_PA(lambda), simplify = TRUE)
+}
+
+par(mfrow = c(1, 2), mar = c(4, 4, 2, 1))
+
+amostra_p <- rpoisson_PA(n, lambda_p)
+freq_rel_p <- prop.table(table(amostra_p))
+prob_plot(lambda_p, amostra_p, freq_rel_p)
+
+
+amostra_g <- rpoisson_PA(n, lambda_g)
+freq_rel_g <- prop.table(table(amostra_g))
+prob_plot(lambda_g, amostra_g, freq_rel_g)
+
+
+# Comparação ----------------------------------------------------------
+
+comparacao <- function(n, lambda){
+  mb_results <- microbenchmark(
+    Livro_Referência = rpoisson_livro(n, lambda),
+    Knuth = rpoisson_knuth(n, lambda),
+    PA_Atkison = rpoisson_PA(n, lambda),
+    Nativo_R = rpois(n, lambda),
+    times = 100L 
+  )
+  return(mb_results)
+}
+```
+
+```{r, poisson_tabelas, echo=FALSE, warning=FALSE, fig.width=10, fig.height=5}
+# Tabela de resultados microbenchmark - Lambda Pequeno
+mb_results_p <- comparacao(n, lambda_p)
+print("------ Lambda Pequeno = 5 -----")
+print(mb_results_p)
+
+# Tabela de resultados microbenchmark - Lambda Grande
+mb_results_g <- comparacao(n, lambda_g)
+print("------ Lambda Grande = 150 -----")
+print(mb_results_g)
+
+plot1 <- autoplot(mb_results_p) +
+  labs(title = paste("Desempenho para lambda =", lambda_p)) +
+  theme_minimal()
+
+plot2 <- autoplot(mb_results_g) +
+  labs(title = paste("Desempenho para lambda =", lambda_g)) +
+  theme_minimal()
+
+plot1 + plot2
+```
+
+Através das comparações, podemos concluir que para lambdas pequenos, o método apresentado no livro referência é o melhor em questão de tempo com bastante folga, e o algoritmo da rejeição do Atkison teve o pior desempenho. Entretanto, para lambdas consideravelmente grandes, o algoritmo da rejeição do Atkison apresenta uma melhora de desempenho com uma diferença de média de $\approx 0.05$ segundos com o algoritmo apresentado no livro referência, sendo também um pouco mais consistente (ver gráfico de desempenho para $\lambda=150$).
+
+## Exercício 1.7
+
+## Exercício 1.8
+
+## Exercício 1.9
+Implemente uma função para gerar amostras de tamanho $n$ da variável aleatória  com função densidade de probabilidade é dada por
+$$
+f(x) = \begin{cases}
+  \frac{x-2}{2} &\text{se } 2 \le x \le 3\\
+  \frac{2-x/3}{2} &\text{se } 3 \le x \le 6
+  \end{cases}
+$$
+Apresente as contas necessárias.
+
+## Solução 
+A detalhar.
+
+## Exercício 1.10
+Implemente uma função para gerar amostras de tamanho $n$ da variável aleatória com função de distribuição é dada por
+$F(x|\alpha, \beta) = 1 - exp\{-\alpha x^\beta\}, 0<x<\infty$
+Apresente as contas necessárias.
+
+##Solução
+A função de distribuição dada é também conhecida como *Weibull* com função de densidade $f(x|\alpha,\beta) = (\alpha \beta x^{\beta-1})\times exp{-\alpha \beta}$ (encontrada através da derivada de $F(x|\alpha, \beta)$)
+
+Seja $U \sim Uniforme(0,1)$, queremos encontrar $x$ tal que $\rightarrow U = 1 - exp\{-\alpha x^\beta\}$
+    $$1-U = exp\{-\alpha x^\beta\}\\
+    -ln(1-U) = \alpha x^\beta\\
+    x^\beta = \frac{-ln(1-U)}{\alpha}\\
+    x = \Bigg(\frac{-ln(1-U)}{\alpha}\Bigg)^\frac{1}{\beta}$$
+  
+Como $U \sim Uniforme(0,1) \rightarrow 1-U \sim Uniforme(0,1)$ e temos $x = \Bigg(\frac{-ln(U)}{\alpha}\Bigg)^\frac{1}{\beta}$
+
+```{r weibull}
+rweib <- function(n, alpha, beta){
+  U <- runif(n)
+  x <- (-log(U) / alpha)^(1/beta)
+  return(x)
+}
+
+densidade_teorica <- function(x, alpha, beta) {
+  alpha * beta * x^(beta - 1) * exp(-alpha * x^beta)
+}
+
+set.seed(123)  
+
+alpha <- 2
+beta <- 1.5
+n <- 10000
+
+amostras <- rweib(n, alpha, beta)
+
+hist(amostras, breaks = 30, probability = TRUE, 
+     main = "Histograma vs Densidade Teorica",
+     xlab = "x", col = "lightblue")
+
+x_seq <- seq(0, max(amostras), length.out = 1000)
+lines(x_seq, densidade_teorica(x_seq, alpha, beta), col = "red", lwd = 2)
+
+legend("topright", legend = c("Amostras", "Teorica"), 
+       col = c("lightblue", "red"), lwd = c(2, 2))
+
+```
+
+## Exercício 1.11
+
+## Exercício 1.12
+
+## Exercício 1.17
+
+## Exercício 1.18
+
+
+ 

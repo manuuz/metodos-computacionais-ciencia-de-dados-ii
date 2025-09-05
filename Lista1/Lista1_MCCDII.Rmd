@@ -15,7 +15,7 @@ output:
 Implemente um algoritmo para fazer permutação utilizando o algoritmo para
 gerar uma amostra de uma variável categórica. Não utilize a função sample do R.
 
-## Solução.
+## Solução
 
 **1.** Armazene os valores em vetor de entrada e faça $n =$ tamanho do vetor;
   
@@ -55,7 +55,7 @@ vetor_permutado
 ## Execício 1.5
 Implemente o algoritmo para gerar da distribuição geométrica.
 
-## Solução.
+## Solução
 
 Código inspirado pelo livro *Statistical Computing with R, Second Edition*.
 Nesse formato, estamos contabilizando o número da tentativa em que ocorre o primeiro sucesso.
@@ -105,7 +105,7 @@ lines(x_vals, y_vals, col = "tomato3", lwd = 2)
 ## Execício 1.6
 Implemente a versão otimizada do algoritmo para gerar da distribuição Poisson e faça comparações do tempo computacional com o algoritmo inicial. Utilize o pacote `microbenchmark` para comparar.
 
-## Solução.
+## Solução
 
 Nessa solução iremos comparar 3 algoritmos para geração de amostras aleatórias da distribuição Poisson:
 
@@ -310,9 +310,16 @@ plot1 + plot2
 
 Através das comparações, podemos concluir que para lambdas pequenos, o método apresentado no livro referência é o melhor em questão de tempo com bastante folga, e o algoritmo da rejeição do Atkison teve o pior desempenho. Entretanto, para lambdas consideravelmente grandes, o algoritmo da rejeição do Atkison apresenta uma melhora de desempenho com uma diferença de média de $\approx 0.05$ segundos com o algoritmo apresentado no livro referência, sendo também um pouco mais consistente (ver gráfico de desempenho para $\lambda=150$).
 
-## Exercício 1.7
+## Exercício 1.7 - MARI
+Reescreva a função do Exemplo 2.6 permitindo que os possíveis valores de $X$ e as probabilidades sejam passadas como argumentos. Faça um estudo de simulação demonstrando a efetividade.
 
-## Exercício 1.8
+## Solução
+
+## Exercício 1.8 - MARI
+Reimplemente o método da transformação inversa para gerar da distribuição Normal truncada sem utilizar as funções `pnorm` e `dnorm`. Utilize a função integrate para calcular a função de distribuição acumulada em um ponto. Use a função `qnorm`, visto que neste caso fica complicado implementar este método sem o uso desta função.
+
+## Solução
+
 
 ## Exercício 1.9
 Implemente uma função para gerar amostras de tamanho $n$ da variável aleatória  com função densidade de probabilidade é dada por
@@ -374,7 +381,10 @@ legend("topright", legend = c("Amostras", "Teorica"),
 
 ```
 
-## Exercício 1.11
+## Exercício 1.11 - MARI
+Escreva uma função para gerar variáveis aleatórias com distribuição Lognormal(1,0). Compare os métodos: método da transformação e método da composição. Gere amostras de tamanho 1000 e compare através de histogramas com a função densidade da distribuição lognormal dada pela função `dlnorm` do R.
+
+## Solução
 
 ## Exercício 1.12
 

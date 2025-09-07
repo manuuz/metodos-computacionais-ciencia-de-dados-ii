@@ -407,9 +407,7 @@ Parâmetros utilizados:
 **4.** Defina $am[i] = x_{ordered}[j]$ e retorne o vetor de amostras $am = (am[1], am[2], ..., am[n])$.
 
 ```{r, mc_distribuicoes_sol}
-# Função para gerar amostras de uma distribuição categórica (rcategorica2 da fonte)
 rcategorica2 <- function(n, x, p){
-  # Validação de entradas
   if (length(x) != length(p)) stop("Os vetores de valores e probabilidades devem ter o mesmo comprimento.")
   if (sum(p) != 1) {
     warning("As probabilidades não somam 1. Elas serão normalizadas.")
@@ -417,22 +415,22 @@ rcategorica2 <- function(n, x, p){
   }
   if (any(p < 0)) stop("As probabilidades devem ser não negativas.")
   
-  # Ordenar os valores e probabilidades em ordem decrescente de probabilidade
+  # ordena os valores e probabilidades em ordem decrescente de probabilidade
   ordem <- order(p, decreasing = TRUE)
   x_ordered <- x[ordem]
   p_ordered <- p[ordem]
   
-  am <- numeric(n) # Vetor para armazenar as amostras
-  acum <- cumsum(p_ordered) # Calcular as probabilidades acumuladas
+  am <- numeric(n) # vetor para armazenar as amostras
+  acum <- cumsum(p_ordered) # calcula as probabilidades acumuladas
   
-  # Gerar n amostras
+  # gera n amostras
   for(i in 1:n){
-    u <- runif(1) # Gerar um número aleatório uniforme
-    # Encontrar a categoria correspondente
+    u <- runif(1)
+    # encontra a categoria correspondente
     for(j in 1:length(x_ordered)){
       if(u <= acum[j]){
         am[i] <- x_ordered[j]
-        break # Sair do loop interno após encontrar a categoria
+        break
       }
     }
   }
@@ -443,48 +441,46 @@ rcategorica2 <- function(n, x, p){
 Para verificar a efetividade por meio de simulação, temos os seguintes cenários:
 
 ```{r, mc_distribuicoes_simulacao}
-set.seed(123) # Para reprodutibilidade
+set.seed(123456789) # para reprodutibilidade
 
-# Número de amostras para cada cenário de simulação
 n_samples_sim <- 50000
 
-# Função auxiliar para plotar comparações (adaptada da ilustração da fonte)
+# função para plotar comparações
 plot_comparison <- function(amostra, theoretical_p, title_str, x_vals) {
-  # Assegurar que os níveis do fator correspondam aos valores possíveis para ordenação correta
+  
+  # assegurando que os níveis do fator correspondam aos valores possíveis para ordenação correta
   observed_freq <- prop.table(table(factor(amostra, levels = x_vals)))
   
-  # Encontrar o máximo valor para o limite do eixo Y
+  # valor máximo pro limite do eixo Y
   max_y <- max(max(observed_freq), max(theoretical_p)) * 1.1
   
-  # Plotar o histograma das frequências observadas
   barplot(observed_freq, ylab = "Frequência Relativa", xlab = "Valor de X",
           main = title_str, col = rainbow(length(x_vals), s = 0.7, v = 0.9), ylim = c(0, max_y))
   
-  # Adicionar as probabilidades teóricas como pontos para comparação
+  # probabilidades teóricas como pontos para comparação
   points(x = seq_along(x_vals), y = theoretical_p, col = "red", pch = 16, cex = 1.5)
   
-  # Adicionar legenda
   legend("topright", legend = c("Frequência Observada", "Probabilidade Teórica"),
          col = c(NA, "red"), pch = c(NA, 16), lty = c(1, NA), bty = "n",
          fill = c(rainbow(length(x_vals), s = 0.7, v = 0.9), NA), border = c("black", NA))
 }
 
-# Cenário 1: Distribuição Uniforme Discreta (quatro categorias)
+# 1: distribuição Uniforme Discreta (quatro categorias)
 cat_x_1 <- 1:4
 cat_p_1 <- c(0.25, 0.25, 0.25, 0.25)
 sim_amostra_1 <- rcategorica2(n_samples_sim, cat_x_1, cat_p_1)
 
-# Cenário 2: Distribuição Categórica Assimétrica (valores numéricos distintos)
+# 2: distribuição categórica assimétrica (valores numéricos distintos)
 cat_x_2 <- c(10, 20, 30, 40, 50)
 cat_p_2 <- c(0.05, 0.15, 0.30, 0.25, 0.25)
 sim_amostra_2 <- rcategorica2(n_samples_sim, cat_x_2, cat_p_2)
 
-# Cenário 3: Distribuição Categórica com muitos níveis e valores não numéricos
-cat_x_3 <- LETTERS[1:7] # Usando letras como possíveis valores
+# 3: distribuição categórica com muitos níveis e valores não numéricos
+cat_x_3 <- LETTERS[1:7] # letras como possíveis valores
 cat_p_3 <- c(0.05, 0.1, 0.15, 0.2, 0.15, 0.2, 0.15)
 sim_amostra_3 <- rcategorica2(n_samples_sim, cat_x_3, cat_p_3)
 
-# Plotar os resultados dos três cenários
+
 par(mfrow = c(3, 1), mar = c(4, 4, 3, 1))
 
 plot_comparison(sim_amostra_1, cat_p_1, "Cenário 1: Distribuição Uniforme Discreta", cat_x_1)
@@ -510,28 +506,18 @@ Reimplemente o método da transformação inversa para gerar da distribuição N
 **6.** Defina a função da densidade teórica da Normal truncada para comparação gráfica $f_{\text{trunc}}(x) = \frac{f(x \mid \mu, \sigma^2)}{F(b) - F(a)}, \quad a \le x \le b$
 
 ```{r, normal_truncada}
-# 1. Função manual para a FDP da distribuição Normal (dnorm_manual)
-# Esta função calcula phi(x | mu, sigma^2)
+# fdp: phi(x | mu, sigma^2)
 dnorm_manual <- function(x, mu, sigma) {
   if (sigma <= 0) stop("O desvio padrão (sigma) deve ser positivo.")
-  
   exponent <- -((x - mu)^2 / (2 * sigma^2))
   coefficient <- 1 / (sigma * sqrt(2 * pi))
   return(coefficient * exp(exponent))
 }
 
-# 2. Função manual para a FDA da distribuição Normal (pnorm_manual)
-# Esta função calcula Phi(q | mu, sigma^2) usando integrate
+# fda: phi(q | mu, sigma^2) usando integrate
 pnorm_manual <- function(q, mu, sigma) {
   if (sigma <= 0) stop("O desvio padrão (sigma) deve ser positivo.")
-  
-  # Casos extremos para q, onde a FDA é 0 ou 1
-  if (q == -Inf) return(0)
-  if (q == Inf) return(1)
-  
-  # Usar integrate para calcular a área sob a curva da FDP
-  # desde -Inf até q.
-  # A função integrate retorna uma lista, e o valor da integral está em 'value'.
+  # a função integrate retorna uma lista; o valor da integral está em 'value'.
   result <- tryCatch({
     integrate(f = function(x) dnorm_manual(x, mu, sigma),
               lower = -Inf, upper = q)
@@ -542,64 +528,51 @@ pnorm_manual <- function(q, mu, sigma) {
   return(result$value)
 }
 
-# 3. Função reimplementada para gerar amostras da Normal Truncada
-# Esta função calcula x = F_trunc_inv(u) usando pnorm_manual e qnorm
+# gera da distribuição normal truncada: x = F_trunc_inv(u) usando pnorm_manual e qnorm
 rnormtrunc_reimplemented <- function(n, mu, sigma, a, b) {
-  # Validação de entradas
   if (sigma <= 0) stop("O desvio padrão (sigma) deve ser positivo.")
   if (a >= b) stop("O limite inferior 'a' deve ser menor que o limite superior 'b'.")
   
-  # Gerar n números aleatórios uniformes entre 0 e 1
   us <- runif(n)
   
-  # Calcular os valores da FDA não truncada nos pontos de truncamento 'a' e 'b'
-  # Estes valores são constantes para todas as amostras e calculados uma vez.
-  # Usamos max(0, min(1, ...)) para garantir que os valores estejam dentro de
-  # para evitar erros com qnorm devido a pequenas imprecisões de integração.
+  # calcula os valores da fda não truncada nos pontos de truncamento 'a' e 'b'
   Phi_a <- max(0, min(1, pnorm_manual(a, mu, sigma)))
   Phi_b <- max(0, min(1, pnorm_manual(b, mu, sigma)))
   
-  # Calcular P_u conforme a derivação matemática
-  # Esta é a probabilidade acumulada ajustada que será usada em qnorm
+  # calcula P_u (probabilidade acumulada ajustada que será usada em qnorm)
   P_u <- Phi_a + us * (Phi_b - Phi_a)
   
-  # Gerar as amostras da distribuição Normal truncada usando qnorm
-  # qnorm(p, mean, sd) retorna o quantil para a probabilidade p
   amostra <- qnorm(P_u, mean = mu, sd = sigma)
   
   return(amostra)
 }
 
-# Função dnormtrunc original (do material fornecido) para comparação gráfica
-# Esta função usa as funções dnorm e pnorm do R, que são permitidas para comparação
+# dnormtrunc para comparação
 dnormtrunc <- function(x, mu, sigma, a, b){
   d <- dnorm(x, mu, sigma) / (pnorm(b, mu, sigma) - pnorm(a, mu, sigma))
   return(d)
 }
 
-### Exemplo de Uso e Ilustração
+# exemplo para ilustração
 
-set.seed(123456789) # Para reprodutibilidade
+set.seed(123456789) # para reprodutibilidade
 
-# Parâmetros da distribuição Normal truncada
+# parâmetros
 n_samples <- 10000
 mu_val <- 10
 sigma_val <- 2
 a_val <- 6
 b_val <- 13
 
-# Gerar amostras usando a função reimplementada
 amostra_reimplementada <- rnormtrunc_reimplemented(n_samples, mu_val, sigma_val, a_val, b_val)
 
-# Configurações para o gráfico
 par(mar = c(4, 4, 1, 1))
 
-# Criar um histograma das amostras geradas
 hist(amostra_reimplementada, xlab = "x", ylab = "Densidade", prob = TRUE, main = "",
      xlim = c(a_val, b_val), col = "lightblue", border = "darkblue",
      ylim = c(0, max(dnormtrunc(seq(a_val, b_val, length.out = 100), mu_val, sigma_val, a_val, b_val)) * 1.1))
 
-# Adicionar a curva de densidade teórica para comparação
+# curva de densidade teórica
 grid_x <- seq(a_val, b_val, length.out = 500)
 lines(grid_x, dnormtrunc(grid_x, mu_val, sigma_val, a_val, b_val), col = "red", lwd = 2)
 
@@ -787,51 +760,43 @@ Escreva uma função para gerar variáveis aleatórias com distribuição Lognor
 **4.** Exponencie a variável para obter a variável resultante lognormal.
 
 ```{r}
-# Função para gerar variáveis aleatórias Normais padrão (N(0,1))
+# método da transformação
 rnormal_padrao <- function(n){
-  # Calcula o número de iterações necessárias para obter n amostras.
-  # Cada iteração bem-sucedida gera 2 valores normais padrão.
+  # calcula o número de iterações necessárias para obter n amostras
+  # cada iteração bem-sucedida gera 2 valores normais padrão
   itera <- ceiling(n/2) 
-  amostra <- numeric(itera * 2) # Pré-aloca espaço para a amostra
+  amostra <- numeric(itera * 2)
   
   for(i in 1:itera){
-    s <- 2 # Inicializa s com um valor > 1 para entrar no loop while
-    while(s > 1 || s == 0){ # A condição s == 0 é adicionada para robustez, embora rara
+    s <- 2 # inicializa s com um valor > 1 para entrar no loop while
+    while(s > 1 || s == 0){
       u1 <- runif(1)
       u2 <- runif(1)
-      v1 <- 2*u1-1 # Transforma U(0,1) para U(-1,1)
-      v2 <- 2*u2-1 # Transforma U(0,1) para U(-1,1)
-      s <- v1^2 + v2^2 # Calcula s = R^2
+      v1 <- 2*u1-1 # de U(0,1) para U(-1,1)
+      v2 <- 2*u2-1 # de U(0,1) para U(-1,1)
+      s <- v1^2 + v2^2 # s = R^2
     }
     
-    # Aplica as transformações de Box-Muller para obter X e Y ~ N(0,1)
+    # transformações de box-muller para obter X e Y ~ N(0,1)
     scale_factor <- sqrt(-2*log(s)/s)
     x <- scale_factor * v1
     y <- scale_factor * v2
     
-    # Armazena os valores gerados
     amostra[i*2-1] <- x
     amostra[i*2] <- y
   }
-  return(amostra[1:n]) # Retorna exatamente n amostras
+  return(amostra[1:n])
 }
 
-# Função para gerar variáveis aleatórias Lognormais usando o método da transformação
 rlnorm_transformacao <- function(n, meanlog = 1, sdlog = 1) {
-  # Verifica se sdlog é positivo para uma distribuição não degenerada
+  # verifica se sdlog é positivo para uma distribuição não degenerada
   if (sdlog <= 0) {
     warning("sdlog deve ser positivo para uma distribuição Lognormal não degenerada. Retornando valores constantes.")
     return(rep(exp(meanlog), n))
   }
   
-  # 1. Gerar variáveis Normais padrão (Z_std ~ N(0,1))
   z_std <- rnormal_padrao(n)
-  
-  # 2. Transformar para Normal com os parâmetros desejados (Z ~ N(meanlog, sdlog^2))
-  # Se Z ~ N(0,1), então mu + sigma*Z ~ N(mu, sigma^2)
   z_general <- meanlog + sdlog * z_std
-  
-  # 3. Exponenciar para obter Lognormal (X = e^Z)
   x_lognormal <- exp(z_general)
   
   return(x_lognormal)
@@ -840,7 +805,7 @@ rlnorm_transformacao <- function(n, meanlog = 1, sdlog = 1) {
 
 **Passo a Passo - Método da composição**
 
-**1.** Escolha uma mistura de distribuições conhecidas.
+**1.** Escolha uma mistura de distribuições conhecidas (nesse caso, usamos duas lognormais com pesos diferentes).
 
 **2.** Gere uma variável discreta para escolher a componente que será usada para cada amostra.
 
@@ -848,7 +813,6 @@ rlnorm_transformacao <- function(n, meanlog = 1, sdlog = 1) {
 
 ```{r}
 gerar_lognormal_composicao <- function(n, pesos, params_meanlog, params_sdlog) {
-  # Verifica se os parâmetros têm o mesmo comprimento
   if (length(pesos) != length(params_meanlog) || length(pesos) != length(params_sdlog)) {
     stop("Os vetores de pesos e parâmetros (meanlog, sdlog) devem ter o mesmo comprimento.")
   }
@@ -857,15 +821,13 @@ gerar_lognormal_composicao <- function(n, pesos, params_meanlog, params_sdlog) {
   amostras_geradas <- numeric(n)
   
   for (i in 1:n) {
-    # Passo 1: Seleciona qual componente amostrar com base nos pesos [2]
-    # 'sample' retorna o índice da componente selecionada (1 a num_componentes)
+    # seleciona qual componente amostrar com base nos pesos (1 a num_componentes)
     componente_selecionada <- sample(1:num_componentes, size = 1, prob = pesos)
     
-    # Obtém os parâmetros da componente selecionada
+    # parâmetros da componente selecionada
     meanlog_atual <- params_meanlog[componente_selecionada]
     sdlog_atual <- params_sdlog[componente_selecionada]
     
-    # Passo 2: Gera um valor aleatório da componente selecionada [2]
     amostras_geradas[i] <- rlnorm(1, meanlog = meanlog_atual, sdlog = sdlog_atual)
   }
   
@@ -876,7 +838,7 @@ gerar_lognormal_composicao <- function(n, pesos, params_meanlog, params_sdlog) {
 Comparando com o `dlnorm`, temos:
 
 ```{r}
-# Parâmetros da distribuição Lognormal
+# parâmetros
 meanlog_param <- 1
 sdlog_param <- 1
 n_amostras <- 1000
@@ -884,11 +846,11 @@ pesos_mistura <- c(0.4, 0.6)
 meanlog_componentes <- c(0, 2)
 sdlog_componentes <- c(0.5, 0.8)
 
-# 1. Gerar amostras usando o método da transformação
-set.seed(123) # Para reprodutibilidade
+# 1. amostras usando o método da transformação
+set.seed(123456789) # Para reprodutibilidade
 amostra_transformacao <- rlnorm_transformacao(n_amostras, meanlog = meanlog_param, sdlog = sdlog_param)
 
-# 2. Gerar as amostras usando o método da composição
+# 2. amostras usando o método da composição
 amostra_lognormal_mistura <- gerar_lognormal_composicao(
   n_amostras,
   pesos_mistura,
@@ -896,19 +858,18 @@ amostra_lognormal_mistura <- gerar_lognormal_composicao(
   sdlog_componentes
 )
 
-# 3. Gerar amostras usando a função dlnorm do R para comparação
+# 3. amostras usando a função rlnorm
 amostra_r_dlnorm <- rlnorm(n_amostras, meanlog = meanlog_param, sdlog = sdlog_param)
 
-# Definir o grid para a curva de densidade teórica
+# grid para curva de densidade teórica
 min_val <- min(amostra_transformacao, amostra_r_dlnorm)
 max_val <- max(amostra_transformacao, amostra_r_dlnorm)
 grid_x <- seq(min_val, max_val, length.out = 500)
 densidade_teorica <- dlnorm(grid_x, meanlog = meanlog_param, sdlog = sdlog_param)
 
-# Configurar o layout
 par( mfrow = c(1,3), mar = c(4, 4, 3, 1) )
 
-# Histograma da amostra gerada pelo método da transformação
+# método da transformação
 hist(amostra_transformacao, freq = FALSE, breaks = 30,
      main = "Lognormal (Transformação)",
      xlab = "Valor", ylab = "Densidade",
@@ -917,13 +878,13 @@ hist(amostra_transformacao, freq = FALSE, breaks = 30,
 lines(grid_x, densidade_teorica, col = "red", lwd = 2)
 legend("topleft", legend = c("Densidade Teórica"), col = "red", lty = 1, lwd = 2, bty = "n")
 
-# Histograma da amostra gerada pelo método da composição
+# método da composição
 hist(amostra_lognormal_mistura, prob = TRUE, breaks = 40,
      xlab = "x", ylab = "Densidade",
      main = "Distribuição Lognormal como Mistura (Método da Composição)",
      col = "lightgreen", border = "white", xlim = c(0, max(amostra_lognormal_mistura) * 1.1))
 
-# Histograma da amostra gerada pela função rlnorm do R
+# função rlnorm
 hist(amostra_r_dlnorm, freq = FALSE, breaks = 30,
      main = "Lognormal (rlnorm do R)",
      xlab = "Valor", ylab = "Densidade",

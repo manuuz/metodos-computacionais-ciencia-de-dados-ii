@@ -1,0 +1,492 @@
+
+## Exercício 1.12
+
+Suponha que é fácil gerar de variáveis aleatórias $X_i$ com função de distribuição $Fi$, $i = 1,...,n$. Considere que $Y = max\{X_1,...,X_n\}$. Temos que
+$$
+F_Y(x) = \prod_{i = 1}^n F_i(x)
+$$
+
+### a. Como podemos gerar uma amostra aleatória da variável $Y$?
+
+## Solução
+
+Para obter uma amostra de $Y$, geramos independentemente $X_1, X_2,..., X_n$ segundo suas distribuições e tomamos o máximo desses valores. O resultado será uma realização de $Y$.
+
+### b. Usando a ideia do item anterior, implemente uma função para gerar da variável aleatória que tem função de distribuição dada por $F(x) = x^n, \ \ 0 \leq x \leq 1.$
+
+## Solução
+
+No item (a) vimos que $Y = max\{X_1, X_2,...,X_n\}$ tem função de distribuição acumulada:
+
+$$
+F_Y(x) = P(Y \leq x) = \prod_{i=1}^nP(X_i \leq x).
+$$
+
+Se cada $X_i \sim U(0,1)$, então $P(X_i \leq x) = x$, para $0 \leq x \leq 1$
+
+Logo: $F_Y(x) = x \cdot x \cdot ... \cdot x = x^n$
+
+
+-   Ou seja, se pegamos n variáveis U(0,1) e tiramos o máximo delas, a distribuição desse máximo é exatamente a distribuição que queremos gerar, então podemos reutilizar o método do item (a): Gerar n uniformes e pegar o máximo.
+
+Implementando no R:
+
+
+```{r}
+gerar_maximo <- function(n) {
+  U <- runif(n)   
+  Y <- max(U)     
+  return(Y)
+}
+
+```
+
+
+Outra forma equivalente seria usar a inversa:
+
+-   Como $F_Y(x) = x^n$, temos: $U = x^n \Longrightarrow x = U^{1/n}$.
+
+Logo, podemos definir $Y = U^{1/n}$.
+
+Implementando no R:
+
+```{r}
+gerar_inversa <- function(n) {
+  U <- runif(1)  
+  Y <- U^(1/n)    
+  return(Y)
+}
+
+# Exemplo
+set.seed(123)
+
+# Gerar 5000 amostras com n = 5
+amostras <- replicate(5000, gerar_inversa(n = 5))
+
+# Visualização
+hist(amostras, probability = TRUE, breaks = 30,
+     main = "Amostras geradas via método da inversa",
+     xlab = "x")
+
+# Densidade teorica: Beta(n,1), f(x) = n * x^(n-1), 0<x<1
+curve(dbeta(x, shape1 = 5, shape2 = 1), col = "red", lwd = 2, add = TRUE)
+legend("topleft", legend = c("Histograma", "Beta(5,1)"),
+       col = c("gray", "red"), lwd = c(5,2), bty = "n")
+
+```
+
+### c. Refaça o item anterior utilizando o método de aceitação e rejeição.
+
+## Solução
+
+-   Derivando $F_Y(x) = x^n$ temos $f_Y(x) = nx^{n-1}, 0 \leq y \leq 1$ $f_Y(x) = ny^{n-1}$ (distribuição Beta(n, 1)).
+-   Usamos a $U(0,1)$ como distribuição proposta $g(y)$, porque o suporte é parecido.
+
+$g(y) = 1, \ \ \ \ \ \ 0 \leq  y \leq 1$
+
+-   Precisamos encontrar a constante $c$: $f_Y(y) \leq cg(y)$
+
+para todo y. Como $g(y) = 1$,
+
+$f_Y(y) \leq c \  \ \Longrightarrow \ \ ny^{n-1} \leq c.$
+
+$max \ f_Y(y) = n.$ (o máximo ocorre quando $y = 1$)
+
+Logo, podemos tomar $c = n$.
+
+-   Algoritmo de aceitação/rejeição
+
+Gerar $Y \sim U(0,1)$ (amostra da proposta $g$);
+
+Gerar $U \sim U(0,1)$ independente;
+
+Aceitar $Y$ se
+
+$$
+U \leq \frac{f_Y(Y)}{cg(Y)} = \frac{nY^{n - 1}}{n * 1} = Y^{n - 1}
+$$
+
+Se rejeitar, repetir até aceitar.
+
+-   Implementação no R:
+
+```{r}
+gerar_rejeicao <- function(n) {
+  repeat {
+    Y <- runif(1)        # candidato da proposta
+    U <- runif(1)        # uniforme auxiliar
+    if (U <= Y^(n-1)) {  # condição de aceitação
+      return(Y)
+    }
+  }
+}
+
+# Exemplo
+set.seed(123)
+
+# Gerar 5000 amostras com n = 5
+amostras <- replicate(5000, gerar_rejeicao(n = 5))
+
+# Visualização
+hist(amostras, probability = TRUE, breaks = 30,
+     main = "Amostras geradas via rejeição",
+     xlab = "x")
+
+# Densidade teórica: Beta(n,1), f(x) = n * x^(n-1), 0<x<1
+curve(dbeta(x, shape1 = 5, shape2 = 1), col = "red", lwd = 2, add = TRUE)
+legend("topleft", legend = c("Histograma", "Beta(5,1)"),
+       col = c("gray", "red"), lwd = c(5,2), bty = "n")
+
+```
+
+### d. Como podemos amostrar de uma variável aleatória que possui função de distribuição dada por
+
+$$
+F_Y(x) = 1 - \prod_{i = 1}^n [1-F_i(x)]
+$$
+
+Dica: Qual a variável aleatória $Y$possui esta função de distribuição?
+
+## Solução
+
+A função é a FDA do mínimo de variáveis independentes, pois
+
+$P(min\{X_1,...,X_n\} \leq x) = 1  - P(X_1 >x,...,X_n > x) = 1 - \prod_{i=1}^nP(X_i>x) = 1 - \prod_{i=1}^n[1-F_i(x)]$
+
+Logo, para amostrar dessa variável:
+
+1.  Gere $X_i \sim F_i$ independentemente, para $i = 1,...,n;$
+2.  Retorne $Y = min\{X_1,...,X_n\}$.
+
+## Exercício 1.13
+
+Usando o método da rejeição, gere da distribuição Normal truncada entre $a$ e $b$. Apresente as contas para encontrar a probabilidade de aceitação.
+
+## Solução
+
+Essa distruição possui função densidade dada por:
+
+$$
+f(x| \mu, \sigma^2,a,b) = \frac{\phi(x)}{\Phi(b)-\Phi(a)}, 
+$$
+
+para $a \leq x \leq b$
+
+em que $\phi(*)$ e $\Phi(*)$ são as fdp e FDA da normal padrão.
+
+-   Escolhemos a U(a,b) como proposta, pois é fácil de amostrar:
+
+$g(x) = \frac{1}{b-a}$ para $a \leq x \leq b$
+
+-   Precisamos de uma constante tal que $f(x) \leq c \ g(x),$ para isso procuramos o valor máximo de $\frac{f(x)}{g(x)}$
+-   A **probabilidade de aceitação** é dada por:
+
+$$
+P(aceitar) = \int P(aceitar|Y = y)g(y)dy
+$$
+
+Substituímos pela condição de aceitação:
+
+$$
+\int \frac{f(y)}{cg(y)}g(y) dy
+$$
+
+Os g(y) se cancelam: $P(aceitar)=\frac{1}{c} \int f(y) \ dy = 1/c$
+
+Algoritmo:
+
+1.  Gere um número aleatório da distribuição proposta
+2.  Gere um número aleatório u da Uniforme(0,1)
+3.  Se $U  \leq \frac{f(x)}{cg(x)}$, aceite u. Caso contrário, volte ao passo 2.
+
+Implementação:
+
+```{r}
+gera_normal_truncada <- function(n, a, b) {
+  # densidade normal padrão
+  dphi <- function(x) dnorm(x, 0, 1)
+  Phi <- function(x) pnorm(x, 0, 1)
+  
+  # normalização da truncada
+  Z <- Phi(b) - Phi(a)
+  
+  # escolher ponto de máximo da normal no intervalo
+  if (a <= 0 & b >= 0) {
+    phi_max <- dphi(0)
+  } else {
+    phi_max <- max(dphi(a), dphi(b))
+  }
+  
+  # constante c
+  c <- (b - a) * phi_max / Z
+  
+  samples <- numeric(n)
+  i <- 1
+  while (i <= n) {
+    # proposta uniforme
+    x <- runif(1, a, b)
+    u <- runif(1)
+    
+    # probabilidade de aceitação
+    fx <- dphi(x) / Z
+    gx <- 1 / (b - a)
+    
+    if (u <= fx / (c * gx)) {
+      samples[i] <- x
+      i <- i + 1
+    }
+  }
+  return(samples)
+}
+
+# Exemplo: gerar 500 valores de N(0,1) truncada em [-1,2]
+set.seed(123)
+x <- gera_normal_truncada(500, -1, 2)
+hist(x, freq = FALSE, breaks = 30, main = "Normal truncada via rejeição")
+curve(dnorm(x) / (pnorm(2) - pnorm(-1)), from = -1, to = 2, add = TRUE, col = "red")
+
+```
+
+## Exercício 1.17
+
+Usando o método da composição, implemente uma função para gerar de uma variável aleatória com função de distribuição:
+
+### a. \$F(x) = \$
+
+$$
+\frac{x+x^2}{2}, \ 0 \leq x \leq 1
+$$
+
+## Solução
+
+A densidade é $f(x) = F'(x) = \frac{1}{2}+x$ que podemos escrever como $f(x) = \frac{1}{2}*1+\frac{1}{2}*2x$
+
+Ou seja, uma mistura com pesos $p = \frac{1}{2}$ e $1 - p = \frac{1}{2}$ das duas densidades em $[0,1]$:
+
+-   $g_1(x) = 1$
+
+(Uniforme(0,1))
+
+-   $g_2(x) = 2x$
+
+(densidade de uma Beta(2,1) com FDA $G_2(x) = x^2)$
+
+> Algoritmo:
+>
+> 1.  Sorteia I \~ Bernoulli(1/2)
+> 2.  Se I = 1, retorne X\~U(0,1)
+> 3.  Se I = 0, retorne X com densidade 2x, que se obtém por inversão: se $U \sim U(0,1)$ então $X = \sqrt{U}$
+
+Implementação:
+
+```{r}
+# Função para gerar n observações da variável X
+gera_mistura_1 <- function(n) {
+  # sorteio da Bernoulli(1/2)
+  I <- rbinom(n, size = 1, prob = 0.5)
+  
+  X <- numeric(n)
+  
+  # se I = 1, gera Uniforme(0,1)
+  X[I == 1] <- runif(sum(I == 1))
+  
+  # se I = 0, gera com densidade 2x -> X = sqrt(U), U~Unif(0,1)
+  U <- runif(sum(I == 0))
+  X[I == 0] <- sqrt(U)
+  
+  return(X)
+}
+
+# Exemplo 
+set.seed(123)
+amostra <- gera_mistura_1(10000)
+
+# Visualização
+hist(amostra, prob = TRUE, col = "lightblue", main = "Amostra da mistura")
+curve(0.5*1 + 0.5*2*x, add = TRUE, col = "red", lwd = 2) # densidade teórica
+
+```
+
+### b.
+
+$$
+F(x) = \frac{x+x^3+x^5}{3}, \ 0 \leq x \leq 1
+$$
+
+## Solução
+
+Derivando:
+
+$$
+f(x) = F'(x) = \frac{1}{3}+ \frac{3}{3}x^2+ \frac{5}{3}x^4, \  0 \leq x \leq 1
+$$
+
+sendo:
+
+-   $g_0(x) = 1$ (Uniforme)
+-   $g_1(x) = 3x^2$ (Beta(3,1))
+-   $g_2(x) = 5x^4$ (Beta(5,1))
+
+e pesos iguais $w_0 = w_1 = w_2 = 1/3$
+
+Algoritmo:
+
+1.  **Sorteie** $K \in \{1, 2, 3\}$ com probabilidade 1/3 cada.
+2.  **Gere uma amostra** $U \sim U(0,1)$ e defina a amostra $X$ com base no valor de $K$:
+    -   **Se** $K=1$, $X=U$ (Uniforme(0,1))
+    -   **Se** $K=2$, $X=U^{1/3}$ (FDA $x^3$)
+    -   **Se** $K=3$, $X=U^{1/5}$ (FDA $x^5$)
+
+Implementação:
+
+```{r}
+gera_mistura_2 <- function(n) {
+  # sorteia K em {1,2,3}, cada um com prob 1/3
+  K <- sample(1:3, size = n, replace = TRUE, prob = c(1/3, 1/3, 1/3))
+  
+  X <- numeric(n)
+  
+  # gera de acordo com K
+  U <- runif(n)  
+  
+  # K=1: Uniforme(0,1)
+  X[K == 1] <- U[K == 1]
+  
+  # K=2: Beta(3,1) -> CDF = x^3 -> inversão: U^(1/3)
+  X[K == 2] <- U[K == 2]^(1/3)
+  
+  # K=3: Beta(5,1) -> CDF = x^5 -> inversão: U^(1/5)
+  X[K == 3] <- U[K == 3]^(1/5)
+  
+  return(X)
+}
+
+# Exemplo
+set.seed(123)
+amostra <- gera_mistura_2(10000)
+
+# Visualização
+hist(amostra, prob = TRUE, col = "lightblue", main = "Mistura (Uniforme, Beta(3,1), Beta(5,1))")
+curve((1/3)*(1 + 3*x^2 + 5*x^4), add = TRUE, col = "red", lwd = 2) # densidade teórica
+
+```
+
+### c.
+
+$$
+F(x) = \begin{cases}
+    \frac{1-e^{-2x}+2x}{3}, & 0 \leq x \le 1 \\
+    \frac{3-e^{-2x}}{3}, & 1 \leq x \leq \infty
+\end{cases}
+$$
+
+## Solução
+
+-   Para $0 \leq x \leq 1:$
+
+$$
+f(x) = \frac{d}{dx}\frac{1 - e^{-2x}+2x}{3}
+$$
+
+$$
+= \frac{2+2e^{-2x}}{3}= \frac{2}{3}(1+e^{-2x})
+$$
+
+-   Para $x \geq 1$:
+
+$$
+f(x) = \frac{d}{dx}\frac{3 - e^{-2x}}{3} = \frac{2e^{-2x}}{3}
+$$
+
+Pra todos $x \geq 0$, $f(x) = \frac{2}{3}\mathbb{I}_{[0,1]}\ + \ \frac{1}{3}2e^{-2x}$
+
+Ou seja, $f$ é uma mistura de:
+
+-   componente A: Uniforme(0,1) com densidade $g_A(x) = 1$ em [0,1], peso $w_A = 2/3;$
+-   componente B: Exponencial com taxa 2 (densidade $g_B(x) = 2e^{-2x}$ em $[0, \infty)$), peso $w_B = 1/3$.
+
+Algoritmo:
+
+**1.** Sorteia K com $P(K = A) = 2/3, P(K = B) = 1/3.$
+
+**2.** Se K = A: gere X \~ Uniforme(0,1) Se K = B: gere X \~ Exponencial(2)
+
+Implementação:
+
+```{r}
+gera_mistura_3 <- function(n) {
+  # sorteia K
+  K <- rbinom(n, size = 1, prob = 1/3)  # 1 => Exponencial, 0 => Uniforme
+  X <- numeric(n)
+  
+  # caso K=0: uniforme(0,1), caso K=1: exponencial(rate=2)
+  X[K == 0] <- runif(sum(K == 0), 0, 1)
+  X[K == 1] <- rexp(sum(K == 1), rate = 2)
+  
+  return(X)
+}
+
+# Exemplo
+set.seed(42)
+amostra <- gera_mistura_3(10000)
+
+hist(amostra, breaks = 100, prob = TRUE, col = "lightblue", main = "Mistura (2/3 U(0,1) + 1/3 Exp(2))")
+
+# densidade teórica
+f_density <- function(x) {
+  ifelse(x <= 1,
+         (2/3)*1 + (1/3)*2*exp(-2*x),
+         (1/3)*2*exp(-2*x))
+}
+curve(f_density, from = 0, to = max(amostra), add = TRUE, col = "red", lwd = 2)
+
+```
+
+## Exercício 1.18
+
+Implemente um algoritmo para gerar uma amostra de tamanho $n$ da variável aleatória com função de distribuição
+
+$$
+F(x) = \int_0^{\infty} x^y e^{-y}  dy, \quad 0 \leq x \leq 1.
+$$
+
+Dica: Suponha que a função de distribuição condicional de $X$ dado $Y = y$ é $P(X \leq x \mid Y = y) = x^y, \quad 0 \leq x \leq 1$
+
+## Solução
+
+Sabemos que $e^{-y}dy$ é a densidade de uma variável $Y \sim Exp(1)$ e que $X|Y = y$ tem FDA igual a $x^y$.
+
+Logo, a densidade condicional é:
+
+$g(x|y) = \frac{d}{dx}x^y = yx^{y-1}, 0 \leq x \leq 1$
+
+ou seja, $X|Y = y \sim Beta(y,1)$
+
+Pelo método da composição, podemos gerar uma amostra seguindo o algoritmo:
+
+1.  Gere $Y \sim Exp(1)$
+2.  Dado $Y = y,$ gere $X$ com FDA $x^y$. Pela inversão: se $U \sim U(0,1)$ então $X = U^{1/y}$.
+
+Isso garante que
+
+$P(X \leq x) = \int P(X \leq x | Y = y)f_Y(y)dy = \int x^ye^{-y}dy$
+
+Implementação:
+
+```{r}
+gera_amostra_conditional <- function(n) {
+  y <- rexp(n, rate = 1)      # Y ~ Exp(1)
+  u <- runif(n)               # U ~ Uniform(0,1)
+  x <- u^(1 / y)              # X | Y=y  ~ FDA x^y -> X = U^(1/y)
+  return(x)
+}
+
+# Exemplo
+set.seed(123)
+amostra <- gera_amostra_conditional(5000)
+
+# Visualização
+hist(amostra, probability = TRUE, breaks = 30,
+     main = "Amostra de X ~ distribuição condicional",
+     xlab = "x")
+```

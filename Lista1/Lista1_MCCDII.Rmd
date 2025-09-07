@@ -6,11 +6,10 @@ execute:
   warning: false
   message: false
 output:
+  html_document: default
   pdf_document:
     keep_tex: true
-  html_document: default
 ---
-
 ## Execício 1.4
 Implemente um algoritmo para fazer permutação utilizando o algoritmo para
 gerar uma amostra de uma variável categórica. Não utilize a função sample do R.
@@ -279,7 +278,6 @@ comparacao <- function(n, lambda){
     Livro_Referência = rpoisson_livro(n, lambda),
     Knuth = rpoisson_knuth(n, lambda),
     PA_Atkison = rpoisson_PA(n, lambda),
-    Nativo_R = rpois(n, lambda),
     times = 100L 
   )
   return(mb_results)
@@ -331,7 +329,7 @@ em que $\chi^2_{\alpha}$ é o quantil de ordem $\alpha$ da distribuição $\chi^
 
 Se a população amostrada é normal, então o nível de confiança é $1-\alpha$. Mas o que acontece se os dados não são normalmente distribuídos?
 
-```{r}
+```{r, mc_distribuicoes}
 # Dados com distribuicao normal com var=4
 n <- 20; alpha <- .05
 UCL <- replicate(1000, expr = {
@@ -351,7 +349,7 @@ mean(UCL > 4)
 
 E como fica para uma t-student para diferentes valores do grau de liberdade, mas com variância igual a 4?
 
-```{r}
+```{r, mc_distribuicoes_tvar}
 n <- 30
 m <- 10000
 alpha <- .05
@@ -371,7 +369,7 @@ abline(h = 0.95, col = 2, lty = 2, lwd = 2)
 
 E como fica para uma t-student para diferentes tamanhos amostrais?
 
-```{r}
+```{r, mc_distribuicoes_tn}
 # Se os dados tem distribuicao t-student(0,sigma2,5) com var=4, mudando n
 n <- seq(10, 600, by = 30)
 m <- 10000
@@ -408,7 +406,7 @@ Parâmetros utilizados:
 
 **4.** Defina $am[i] = x_{ordered}[j]$ e retorne o vetor de amostras $am = (am[1], am[2], ..., am[n])$.
 
-```{r}
+```{r, mc_distribuicoes_sol}
 # Função para gerar amostras de uma distribuição categórica (rcategorica2 da fonte)
 rcategorica2 <- function(n, x, p){
   # Validação de entradas
@@ -444,7 +442,7 @@ rcategorica2 <- function(n, x, p){
 
 Para verificar a efetividade por meio de simulação, temos os seguintes cenários:
 
-```{r}
+```{r, mc_distribuicoes_simulacao}
 set.seed(123) # Para reprodutibilidade
 
 # Número de amostras para cada cenário de simulação
@@ -494,7 +492,7 @@ plot_comparison(sim_amostra_2, cat_p_2, "Cenário 2: Distribuição Categórica 
 plot_comparison(sim_amostra_3, cat_p_3, "Cenário 3: Distribuição Categórica com Caracteres", cat_x_3)
 ```
 
-## Exercício 1.8 - MARI
+## Exercício 1.8
 Reimplemente o método da transformação inversa para gerar da distribuição Normal truncada sem utilizar as funções `pnorm` e `dnorm`. Utilize a função integrate para calcular a função de distribuição acumulada em um ponto. Use a função `qnorm`, visto que neste caso fica complicado implementar este método sem o uso desta função.
 
 ## Solução
@@ -511,7 +509,7 @@ Reimplemente o método da transformação inversa para gerar da distribuição N
 
 **6.** Defina a função da densidade teórica da Normal truncada para comparação gráfica $f_{\text{trunc}}(x) = \frac{f(x \mid \mu, \sigma^2)}{F(b) - F(a)}, \quad a \le x \le b$
 
-```{r}
+```{r, normal_truncada}
 # 1. Função manual para a FDP da distribuição Normal (dnorm_manual)
 # Esta função calcula phi(x | mu, sigma^2)
 dnorm_manual <- function(x, mu, sigma) {
@@ -621,7 +619,110 @@ $$
 Apresente as contas necessárias.
 
 ## Solução 
-A detalhar.
+**Encontrando a FDA:** 
+Para $2 \leq x \leq 3$:
+$$
+F(x) = \int_2^x \frac{t-2}{2} dt = \frac{1}{2} \left[\frac{(t-2)^2}{2}\right]_2^x = \frac{(x-2)^2}{4}
+$$
+
+Para $3 \leq x \leq 6$:
+$$
+F(x) = F(3) + \int_3^x \frac{2-t/3}{2} dt = \frac{1}{4} + \frac{1}{2} \left[2t - \frac{t^2}{6}\right]_3^x \\
+= \frac{1}{4} + \frac{1}{2} \left[(2x - \frac{x^2}{6}) - (6 - \frac{9}{6})\right] \\
+= \frac{1}{4} + \frac{1}{2} \left[2x - \frac{x^2}{6} - 6 + 1.5\right] \\
+= \frac{1}{4} + \frac{1}{2} \left[2x - \frac{x^2}{6} - 4.5\right] \\
+= \frac{1}{4} + x - \frac{x^2}{12} - 2.25 \\
+= -\frac{x^2}{12} + x - 2
+$$
+Portanto:
+$$
+F(x) = \begin{cases} 
+0 & \text{se } x < 2; \\ 
+\frac{(x-2)^2}{4} & \text{se } 2 \leq x \leq 3; \\ 
+-\frac{x^2}{12} + x - 2 & \text{se } 3 \leq x \leq 6; \\ 
+1 & \text{se } x > 6. 
+\end{cases}
+$$
+
+**Inversas da FDA:**
+Seja $U \sim \text{Uniforme}(0,1)$. Queremos encontrar $x$ tal que $F(x) = U$.
+
+**Caso 1**: $0 \leq U \leq F(3) = \frac{1}{4}$
+$$
+U = \frac{(x-2)^2}{4} \\
+(x-2)^2 = 4U \\
+x-2 = 2\sqrt{U} \\
+x = 2 + 2\sqrt{U}
+$$
+
+**Caso 2:** $\frac{1}{4} \leq U \leq 1$
+$$
+U = -\frac{x^2}{12} + x - 2 \\
+\frac{x^2}{12} - x + (2 + U) = 0 \\
+x^2 - 12x + 12(2 + U) = 0 \\
+x^2 - 12x + (24 + 12U) = 0
+$$
+Resolvendo a equação quadrática:
+$$
+x = \frac{12 \pm \sqrt{144 - 4(24 + 12U)}}{2} = \frac{12 \pm \sqrt{144 - 96 - 48U}}{2} \\
+= \frac{12 \pm \sqrt{48 - 48U}}{2} = \frac{12 \pm \sqrt{48(1 - U)}}{2} \\
+= \frac{12 \pm 4\sqrt{3(1 - U)}}{2} = 6 \pm 2\sqrt{3(1 - U)}
+$$
+
+Assumindo $x \in [3,6]$, tomamos a solução com sinal negativo:
+$$
+x = 6 - 2\sqrt{3(1 - U)}
+$$
+**Passo a Passo - Método da Transformada Inversa**
+
+**1.** Gere $U \sim \text{Uniforme}(0,1)$
+
+**2.** Se $U \leq 0.25$, então $x = 2 + 2\sqrt{U}$
+
+**3.** Se $U > 0.25$, então $x = 6 - 2\sqrt{3(1 - U)}$
+
+```{r amostras_densidade}
+rfdp <- function(n){
+  U <- runif(n)
+  x <- numeric(n)
+
+  x <- ifelse(U <= 0.25,
+              2 + 2 * sqrt(U),
+              6 - 2 * sqrt(3 * (1 - U)))
+  
+  return(x)
+}
+
+f_densidade <- function(x) {
+  ifelse(x >= 2 & x <= 3, (x - 2)/2,
+         ifelse(x > 3 & x <= 6, (6 - x)/6, 0))
+}
+
+set.seed(800)
+
+n <- 10000
+amostra_gerada <- rfdp(n)
+
+hist(amostra_gerada, 
+     breaks = 30, 
+     freq = FALSE, 
+     main = "Amostra Gerada vs. Densidade Teórica",
+     xlab = "x",
+     ylab = "Densidade",
+     col = "lightblue",
+     border = "white")
+
+
+x_seq <- seq(2, 6, length.out = 1000)
+
+lines(x_seq, f_densidade(x_seq), col = "red", lwd = 2)
+
+legend("topright", 
+       legend = c("Amostra", "Teórica"), 
+       col = c("lightblue", "red"), 
+       lwd = c(2, 2))
+```
+
 
 ## Exercício 1.10
 Implemente uma função para gerar amostras de tamanho $n$ da variável aleatória com função de distribuição é dada por
@@ -670,7 +771,7 @@ legend("topright", legend = c("Amostras", "Teorica"),
 
 ```
 
-## Exercício 1.11 - MARI
+## Exercício 1.11
 Escreva uma função para gerar variáveis aleatórias com distribuição Lognormal(1,0). Compare os métodos: método da transformação e método da composição. Gere amostras de tamanho 1000 e compare através de histogramas com a função densidade da distribuição lognormal dada pela função `dlnorm` do R.
 
 ## Solução

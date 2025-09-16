@@ -1,0 +1,463 @@
+---
+title: "Lista 2 Métodos Computacionais para Ciência de Dados II"
+author: "Emanuelle Oliveira, Maria Luiza Oliveira, Mariana Fleming"
+execute: 
+  echo: true
+  warning: false
+  message: false
+output:
+  pdf_document:
+    keep_tex: true
+  html_document: default
+---
+# Questão 1
+## Exercício 1.14
+Pesquise algum pacote do R em que o método da rejeição adaptativa está implementado e gere amostras das distribuições Gama e Beta. Considere diferentes valores para os parâmetros destas distribuições.
+
+## Solução
+O pacote `ars` é feito para calcular o método da rejeição adaptativa, metódo este que gera variáveis aleatórias de distribuiçoes contínuas de probabilidade quando a função densidade-log é também a função log-concâvo. No pacote basta utilizar da função de mesmo nome.
+
+### Gama(2, 1/10)
+
+Priori do modelo autoregressivo não-Gaussiano baseado em uma skew-*t* de Juárez & Steel, 2010.
+
+```{r ars-gamma, message=FALSE, warning=FALSE}
+library(ars)
+
+set.seed(830)
+gamma <-function(x,shape,scale=1){
+  (shape-1)*log(x)-x/scale
+  }
+
+gamma_dlog <- function(x,shape,scale=1) {
+  (shape-1)/x-1/scale
+}
+n <- 100000
+sample_gamma<-ars(n, gamma, gamma_dlog, x=4.5, m=1, lb=TRUE, xlb=0, shape=2, scale=0.1)
+
+hist(sample_gamma,
+     probability = TRUE,
+     ylim = c(0, 4),
+     main = "Distribuicao Gamma",
+     col = 'lightblue')
+
+x_seq <- seq(0, max(sample_gamma), length.out = 100000)
+lines(x_seq, dgamma(x_seq, shape=2, scale=0.1), col = "tomato2", lwd = 3)
+```
+
+### Beta(3.4, 1.1)
+
+```{r ars-beta, message=FALSE, warning=FALSE}
+library(ars)
+
+set.seed(830)
+beta <- function(x,a,b){
+  (a-1)*log(x)+(b-1)*log(1-x)
+}
+
+beta_dlog <-function(x,a,b){
+  (a-1)/x-(b-1)/(1-x)
+}
+
+sample_beta <-ars(n, beta, beta_dlog, x=c(0.3,0.6), m=2, 
+                  lb=TRUE, xlb=0, ub=TRUE, xub=1, 
+                  a=3.4, b=1.1)
+
+hist(sample_beta,
+     probability = TRUE,
+     ylim = c(0, 4),
+     main = "Distribuicao Beta",
+     col = 'lightblue')
+
+x_seq <- seq(0, max(sample_beta), length.out = 100000)
+lines(x_seq, dbeta(x_seq, 3.4, 1.1), col = "tomato2", lwd = 3)
+```
+
+
+## Execício 1.16
+Implemente o algoritmo SIR para amostrar da distribuição normal assimétrica.
+
+## Solução
+
+
+
+## Execício 1.19
+Considerando diferentes valores de $\lambda$, implemente o segundo algoritmo
+para gerar do Processo de Poisson homogêneo e compare a eficiência computacional dos
+dois algoritmos 
+
+## Solução
+
+
+
+## Exercício 1.21
+Implemente um algoritmo eficiente para gerar os $k$ primeiros tempos de um Processo de Poisson não homogêneo
+com função de intensidade
+
+$$
+\lambda(t) = \begin{cases}
+  \frac{t}{5}, 0<t<5; \\
+  1+5(t-5),  t\geq 5.
+  \end{cases}
+$$
+
+## Solução
+
+
+
+## Exercício 1.22
+Implemente o algoritmo para gerar um processo de Poisson nãohomogêneo com função de intensidade dada no Exemplo 2.15. Faça com diferentes valores de $a$.
+
+## Solução
+
+
+
+## Exercício 1.23
+Implemente um algoritmo para gerar um processo de Poisson homogêneo na área abaixo da curva $f(x)=x^2$ com $0\leq x \leq 5$.
+
+## Solução
+
+
+# Questão 2
+Use o amostrador de Metropolis-Hastings para gerar variáveis aleatórias de uma distribuição Cauchy padrão. Descarte os primeiros 1000 da cadeia e compare os decis de observações geradas com os decis da distribuição Cauchy padrão (veja `qcauchy` ou `qt` com `df=1`). Lembre-se de que uma distribuição Cauchy($\theta, \eta$) tem função densidade
+
+## Solução
+
+**Passo-a-Passo**
+
+1) Inicie uma cadeia onde o primeiro passo é um valor de entrada $X^{(0)}=x^{(0)}$, em que $X^{(t)}=(X^{(t)}_1, ..., X^{(t)}_p)^t$. Dado $X^{(0)}=x^{(0)}$, o algoritmo para gerar $X^{(t+1)}$ continua:
+
+2) Escolha uma função proposta $Y \sim g(\cdot \vert x^{(t)})$. A escolhida para o exercício foi uma $N(x^{(t)}, \sigma^2)$.
+
+3) Calculamos a razão $R = \frac{f(y)}{f(x^{(t)})}$, visto que $g(\cdot)$ se anula por ser uma normal
+
+4) Aceite $x^{(t+1)}=Y$ com probabilidade $min{1, R(x^{(t)}, Y)}$, caso contrário, faça $x^{(t+1)} = x^{(t)}$
+
+5) Incremente $t$ e retorne ao passo 2.
+
+Calculamos a cauchy padrão na função `pdf_cauchy`, a mesma é definida como Cauchy(0,1). Utilizamos de entrada $x^{(0)} = 5$.
+
+```{r cauchy, fig.width=10, fig.height=5}
+pdf_cauchy <- function(x){
+  result <- 1 / (pi * (1 + x^2))
+  return (result)
+}
+
+mh_cauchy <- function(n, x0, sigma){
+  chain <- numeric(n)
+  chain[1] <- x0
+  accepted = 0
+  
+  for (i in 2:length(chain)){
+    x_current <- chain[i-1]
+    
+    # proposta: Normal com media de valor atual e sigma de entrada
+    y <- rnorm(1, x_current, sigma)
+    
+    # R = f(Y) / f(x(t)) -> a g(.) se anula por ser uma normal
+    ratio <- pdf_cauchy(y) / pdf_cauchy(x_current)
+    
+    if (runif(1) < ratio){
+      chain[i] <- y 
+      accepted<- accepted + 1
+    } else {
+      chain[i] <- x_current
+    }
+  }
+  
+  ARate <- accepted / (n-1)
+  
+  return(list(chain = chain, ARate = ARate))
+}
+
+n <- 10000
+burn_in <- 1000
+
+set.seed(123)  
+result <- mh_cauchy(n, x0 = 5, sigma = 1)
+
+
+chain <- result$chain
+post_burn_chain <- chain[(burn_in + 1):n]
+
+cat("Taxa de aceitacao:", round(result$ARate, 4), "\n")
+
+plot(post_burn_chain, type = "l", col = "cornflowerblue", 
+     main = "Cadeia (apos burn-in)",
+     xlab = "Iteracao", ylab = "Valor")
+
+hist(post_burn_chain, breaks = 50, freq = FALSE, 
+     main = "Histograma vs Densidade Teorica", 
+     xlab = "x", ylab = "Densidade", col = "lightblue") 
+curve(dcauchy(x, location = 0, scale = 1), add = TRUE, 
+      col = "tomato2", lwd = 2, lty = 2)
+
+```
+
+
+
+# Questão 3
+Implemente um amostrador Metropolis de passeio aleatório para gerar a distribuição Laplace padrão. Para o incremento, simule de uma distribuição normal. Compare as cadeias geradas quando diferentes variâncias são usadas para a distribuição de proposta. Além disso, compute as taxas de aceitação de cada cadeia.
+
+## Solução
+
+### Código
+
+```{r laplace, fig.width=10, fig.height=5}
+pdf_laplace <- function(x){
+  result <- (1 / 2)*exp(- abs(x))
+  return (result)
+}
+
+mh_laplace <- function(n, x0, sigma){
+  chain <- numeric(n)
+  chain[1] <- x0
+  accepted = 0
+  
+  for (i in 2:length(chain)){
+    x_current <- chain[i-1]
+    
+    # proposta: Normal com media de valor atual e sigma de entrada
+    y <- rnorm(1, x_current, sigma)
+    
+    # R = f(Y) / f(x(t)) -> a g(.) se anula por ser uma normal
+    ratio <- pdf_laplace(y) / pdf_laplace(x_current)
+    
+    if (runif(1) < ratio){
+      chain[i] <- y 
+      accepted<- accepted + 1
+    } else {
+      chain[i] <- x_current
+    }
+  }
+  
+  ARate <- accepted / (n-1)
+  
+  return(list(chain = chain, ARate = ARate))
+}
+
+n <- 10000
+burn_in <- 1000
+
+set.seed(123)  
+
+result1 <- mh_laplace(n, x0 = 5, sigma = 0.2)
+result2 <- mh_laplace(n, x0 = 5, sigma = 2)
+result3 <- mh_laplace(n, x0 = 5, sigma = 5)
+result4 <- mh_laplace(n, x0 = 5, sigma = 10)
+
+chain <- result$chain
+post_burn_chain <- chain[(burn_in + 1):n]
+
+ARate1 <- round(result1$ARate, 4)
+ARate2 <- round(result2$ARate, 4)
+ARate3 <- round(result3$ARate, 4)
+ARate4 <- round(result4$ARate, 4)
+
+taxas_acept <- data.frame(
+  Sigma = c("0.2", "2", "5", "10"),
+  TaxaAceitacao  = c(ARate1, ARate2, ARate3, ARate4)
+)
+print(taxas_acept)
+```
+
+### Gráficos de cadeia
+
+```{r chains-laplace, echo=FALSE, fig.width=10, fig.height=5}
+plot_cadeia <- function(result, sigma_val, burn_in) {
+  post_burn_chain <- result$chain[(burn_in + 1):n]
+  
+  plot(post_burn_chain, type = "l", col = "cornflowerblue", 
+       main = paste("Sigma =", sigma_val),
+       xlab = "Iteracao", ylab = "Valor")
+}
+
+plot_histograma <- function(result, sigma_val, burn_in) {
+  post_burn_chain <- result$chain[(burn_in + 1):n]
+  
+  hist(post_burn_chain, breaks = 50, freq = FALSE, 
+       main = paste("Sigma =", sigma_val), 
+       xlab = "x", ylab = "Densidade", col = "lightblue")
+  
+  curve(pdf_laplace(x), add = TRUE, 
+        col = "tomato2", lwd = 2, lty = 2)
+}
+
+par(mfrow = c(2, 2), mar = c(4, 4, 2, 1))
+plot_cadeia(result1, 0.2, burn_in)
+plot_cadeia(result2, 1, burn_in)
+plot_cadeia(result3, 5, burn_in)
+plot_cadeia(result4, 10, burn_in)
+```
+
+### Histograma vs Densidade Teórica
+
+```{r hist_laplace, echo=FALSE, fig.width=10, fig.height=5}
+par(mfrow = c(1, 1))
+
+par(mfrow = c(2, 2), mar = c(4, 4, 2, 1))
+plot_histograma(result1, 0.2, burn_in)
+plot_histograma(result2, 1, burn_in)
+plot_histograma(result3, 5, burn_in)
+plot_histograma(result4, 10, burn_in)
+```
+
+
+# Questão 4
+Considere a densidade bivariada
+
+Pode-se mostrar que, para $a, b, n$ fixos, as distribuições condicionais são Binomial$(n, y)$ e Beta$(x + a, n - x + b)$. Use o amostrador de Gibbs para gerar uma cadeia com densidade conjunta alvo $f(x, y)$.
+
+
+## Solução
+
+
+# Questão 5
+Suponha que a densidade conjunta de $X, Y, Z$ seja dada por
+
+onde $a, b, c$ são constantes não negativas especificadas e $C$ não depende de $x, y, z$. Explique como podemos simular o vetor$(X, Y, Z)$ e realize uma simulação para estimar $E[X]$ e $E[XYZ]$ quando $a = b = c = 1$.
+
+## Solução
+
+
+# Questão 6
+
+**POR CONTAS AINDA**
+
+## Exercício 2.1
+Utilizando o método de integração de Monte Carlo, obtenha uma aproximação para as seguintes integrais.
+
+a) $\int_{0}^{1} \exp\{ e^x \}\, dx$ 
+
+b) $\int_{-2}^{2} \exp\{ x + x^2 \}\, dx$  
+
+c) $\int_{0}^{\infty} x (1 + x^2)^{-2}\, dx$
+
+f) $\int_{0}^{\infty} \int_{0}^{x} \exp\{ -(x+y) \}\, dy\, dx$
+
+## Soluções
+
+a)
+```{r integracao-a}
+set.seed(345)
+
+f <- function(x){
+  exp(exp(x))
+}
+
+n <- 10000
+x <- runif(n)
+aprox <- mean(f(x))
+
+numerica <- integrate(f = function(x){exp(exp(x))}, lower=0, upper=1) 
+
+resultado <- data.frame(
+  Metodo = c("Monte Carlo", "Integracao numerica"),
+  Valor  = c(aprox, numerica$value)
+)
+print(resultado)
+
+```
+
+b)
+```{r integracao-b}
+set.seed(345)
+
+f <- function(x){
+  exp(x-x^2)
+}
+
+n <- 10000
+x <- runif(n, -2, 2)
+aprox <- mean(f(x))* (2 - (-2)) #multiplicamos pela largura
+
+numerica <- integrate(f = function(x){exp(x-x^2)}, lower=-2, upper=2)
+
+resultado <- data.frame(
+  Metodo = c("Monte Carlo", "Integracao numerica"),
+  Valor  = c(aprox, numerica$value)
+)
+print(resultado)
+```
+
+c)
+```{r integracao-c}
+set.seed(345)
+
+g <- function(u){
+  (u*(1-u))/(2*u^2 - 2*u + 1)^2
+}
+
+n <- 10000
+u <- runif(n)
+aprox <- mean(g(u))
+
+numerica <- integrate(f = function(x){x*(1+x^2)^(-2)}, lower=0, upper=Inf)
+
+resultado <- data.frame(
+  Metodo = c("Monte Carlo", "Integracao numerica"),
+  Valor  = c(aprox, numerica$value)
+)
+print(resultado)
+```
+
+f)
+```{r integracao-f, message=FALSE, warning=FALSE}
+set.seed(345)
+library(pracma)
+
+f <- function(x, y) {
+  exp(-(x + y))
+}
+
+g <- function(u, v) {
+  return(u^v * (-log(u)))
+}
+
+n <- 10000
+u <- runif(n)
+v <- runif(n)
+aprox <- mean(g(u, v))
+
+
+numerica <- integral2(f, 0, 100, 0, function(x){x}) #n grande para simulação, visto que o pracma não aceita Inf
+
+resultado <- data.frame(
+  Metodo = c("Monte Carlo", "Integracao numerica"),
+  Valor  = c(aprox, numerica$value)
+)
+print(resultado)
+```
+
+## Exercício 2.2
+Faça um estudo Monte Carlo para estimar o viés e o EQM dos seguintes
+estimadores para a variância populacional:
+
+## Solução
+
+
+## Exercício 2.4
+Suponha o intervalo de 95% de confiança t-Student para a média populacional com dados não normais. A probabilidade de que o intervalo de confiança cubra a verdadeira média não é necessariamente 0,95, pois uma suposição não é atendida. Use um estudo Monte Carlo para estimar a probabilidade de cobertura (e o erro padrão desta estimativa) do intervalo t-Student para amostras de tamanhos $n$=20, 30 e 100 das seguintes distribuições:
+
+a) $\chi^2_2$
+
+b) Outra distribuição assimétrica de sua preferência.
+
+## Solução
+
+
+## Exercício 2.5
+Plote a curva de poder empírica para o teste $t$ no Exemplo 3.7, mudando as hipóteses para $H_0 : \mu = 500$ vs $H_1 : \mu \ne 500$ e mantendo o nível de significância de $\alpha = 0,05$. Em um mesmo gráfico, plote as curvas de poder para os tamanhos amostrais 10, 20, 30, 40 e 50, usando cores diferentes.
+
+## Solução
+
+
+## Exercício 2.7
+Implemente um algoritmo para fazer um teste de hipóteses Monte Carlo para testar se a média populacional é igual a um valor pré-especificado, assumindo que os dados são normalmente distribuidos com desvio padrão conhecido. Em um pequeno estudo Monte Carlo, compare o poder do teste implementado com o teste Normal (utilize a função implementada em algum pacote do R).
+
+## Solução
+
+
+
+
+ 

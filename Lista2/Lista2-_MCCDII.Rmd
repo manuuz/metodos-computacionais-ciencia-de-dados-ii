@@ -10,7 +10,6 @@ output:
     keep_tex: true
   html_document: default
 ---
-
 # Questão 1
 ## Exercício 1.14
 Pesquise algum pacote do R em que o método da rejeição adaptativa está implementado e gere amostras das distribuições Gama e Beta. Considere diferentes valores para os parâmetros destas distribuições.
@@ -124,7 +123,7 @@ Use o amostrador de Metropolis-Hastings para gerar variáveis aleatórias de uma
 
 ## Solução
 
-**Passo-a-Passo**
+### Passo a passo
 
 1) Inicie uma cadeia onde o primeiro passo é um valor de entrada $X^{(0)}=x^{(0)}$, em que $X^{(t)}=(X^{(t)}_1, ..., X^{(t)}_p)^t$. Dado $X^{(0)}=x^{(0)}$, o algoritmo para gerar $X^{(t+1)}$ continua:
 
@@ -132,11 +131,14 @@ Use o amostrador de Metropolis-Hastings para gerar variáveis aleatórias de uma
 
 3) Calculamos a razão $R = \frac{f(y)}{f(x^{(t)})}$, visto que $g(\cdot)$ se anula por ser uma normal
 
-4) Aceite $x^{(t+1)}=Y$ com probabilidade $min{1, R(x^{(t)}, Y)}$, caso contrário, faça $x^{(t+1)} = x^{(t)}$
+4) Aceite $x^{(t+1)}=Y$ com probabilidade $\min{(1, R(x^{(t))}, Y)}$, caso contrário, faça $x^{(t+1)} = x^{(t)}$
 
 5) Incremente $t$ e retorne ao passo 2.
 
 Calculamos a cauchy padrão na função `pdf_cauchy`, a mesma é definida como Cauchy(0,1). Utilizamos de entrada $x^{(0)} = 5$.
+$$
+\to f(x) = \frac{1}{\pi(1+x^2)}
+$$
 
 ```{r cauchy, fig.width=10, fig.height=5}
 pdf_cauchy <- function(x){
@@ -184,7 +186,7 @@ post_burn_chain <- chain[(burn_in + 1):n]
 cat("Taxa de aceitacao:", round(result$ARate, 4), "\n")
 
 plot(post_burn_chain, type = "l", col = "cornflowerblue", 
-     main = "Cadeia (apos burn-in)",
+     main = "Cadeia (pos burn-in)",
      xlab = "Iteracao", ylab = "Valor")
 
 hist(post_burn_chain, breaks = 50, freq = FALSE, 
@@ -201,6 +203,24 @@ curve(dcauchy(x, location = 0, scale = 1), add = TRUE,
 Implemente um amostrador Metropolis de passeio aleatório para gerar a distribuição Laplace padrão. Para o incremento, simule de uma distribuição normal. Compare as cadeias geradas quando diferentes variâncias são usadas para a distribuição de proposta. Além disso, compute as taxas de aceitação de cada cadeia.
 
 ## Solução
+
+### Passo a passo
+
+1) Inicie uma cadeia onde o primeiro passo é um valor de entrada $x^{(0)}=\mu^{(0)}$, onde iremos utilizar a mesma $\mu$ para todas as cadeias e $\sigma^2$ um valor escolhido para cada cadeia. Dado $X^{(0)}=x^{(0)}$, o algoritmo para gerar $X^{(t+1)}$ continua:
+
+2) Escolha uma função proposta $Y \sim g(\cdot \vert x^{(t)})$. A escolhida para o exercício foi uma $N(\mu^{(t)}, \sigma^{2*})$. Utilizamos no exemplo $\mu^{(0)} = x^{(0)}=5, \sigma^2=0.2, 2, 5$ e $10$.
+
+3) Calculamos a razão $R = \frac{f(y)}{f(x^{(t)})}$, visto que $g(\cdot)$ se anula por ser uma normal
+
+4) Aceite $x^{(t+1)}=Y$ com probabilidade $\min{(1, R(x^{(t)}, Y))}$, caso contrário, faça $x^{(t+1)} = x^{(t)}$
+
+5) Incremente $t$ e retorne ao passo 2.
+
+Calculamos a cauchy padrão na função `pdf_laplace`, a mesma é definida como Laplace(0,1).
+$$
+f(x) = \frac{1}{2b}exp{\Big(-\frac{\vert x-\mu\vert}{b} \Big)} \\
+\to f(x) = \frac{1}{2}exp{(-\vert x \vert)}
+$$
 
 ### Código
 
@@ -246,9 +266,6 @@ result1 <- mh_laplace(n, x0 = 5, sigma = 0.2)
 result2 <- mh_laplace(n, x0 = 5, sigma = 2)
 result3 <- mh_laplace(n, x0 = 5, sigma = 5)
 result4 <- mh_laplace(n, x0 = 5, sigma = 10)
-
-chain <- result$chain
-post_burn_chain <- chain[(burn_in + 1):n]
 
 ARate1 <- round(result1$ARate, 4)
 ARate2 <- round(result2$ARate, 4)
@@ -306,24 +323,101 @@ plot_histograma(result4, 10, burn_in)
 
 # Questão 4
 Considere a densidade bivariada
+$$
+f(x,y) \propto \dbinom{n}{k} y^{x+a-1} (1-y)^{n-x+b-1}, x=0,1,...,n, 0 \leq y \leq 1.
+$$
 
 Pode-se mostrar que, para $a, b, n$ fixos, as distribuições condicionais são Binomial$(n, y)$ e Beta$(x + a, n - x + b)$. Use o amostrador de Gibbs para gerar uma cadeia com densidade conjunta alvo $f(x, y)$.
 
-
 ## Solução
+A densidade marginal é:
+$$
+f(x) = \int_0^1 \dbinom{n}{k} y^{x+a-1} (1-y)^{n-x+b-1}dy
+$$
+Que é a Beta-Binomial da nossa função densidade alvo.
 
+Entretanto, como essa integral pode ser complexa, iremos usar Gibbs para gerar de $f(x \vert y) \sim Bin(n, y)$ e $f(y \vert x) \sim Beta(x+a, n-x+b)$.
 
-# Questão 5 - MARI
+### Passo a passo
+
+1) Defina os valores iniciais de $x^{(0)}$ e $y^{(0)}$. Nesse exemplo usaremos $a=2, b=4$ e $t=16$.
+
+2) Enquanto $i \leq N, i=1,2...$, gere:
+$$
+x^{(i)} \sim Binomial(t, y^{(i-1)}) \\
+y^{(i)} \sim Beta(a+x^{(i)}, t-x^{(i)}+b)
+$$
+```{r gibbs, message=FALSE, warning=FALSE}
+library(VGAM)
+
+pdf_betabinomial <- function(x, size=16, a=2, b=4) {
+  dbetabinom.ab(x, size=size, shape1=a, shape2=b)
+}
+
+gs_betabinomial <- function(N, a, b, t, x0, y0){
+  X <- numeric(n)
+  Y <- numeric(n)
+  
+  X[1] <- x0
+  Y[1] <- y0
+  
+  for(i in 2:N){
+    X[i] <- rbinom(1, t, Y[i-1])
+    Y[i] <- rbeta(1, X[i]+a, t-X[i]+b)
+  }
+  
+  return(list(X = X, Y = Y))
+}
+
+set.seed(469)
+
+N <- 5000
+burn_in <- 1000
+
+result <- gs_betabinomial(N, a=2, b=4, t=16, x0=2, y0=0.5)
+
+result_X <- result$X
+result_Y <- result$Y
+```
+
+```{r chains-gibbs, echo=FALSE,fig.width=10, fig.height=5}
+plot_cadeia <- function(result, var, burn_in) {
+  post_burn_chain <- result[(burn_in + 1):N]
+  
+  plot(post_burn_chain, type = "l", col = "cornflowerblue", 
+       main = paste("Cadeia de ", var),
+       xlab = "Iteracao", ylab = "Valor")
+}
+
+plot_cadeia(result_X, "X", burn_in)
+plot_cadeia(result_Y, "Y", burn_in)
+```
+
+### Histograma vs Densidade Teórica
+
+```{r hist_gibbs, echo=FALSE, fig.width=10, fig.height=5}
+x_vals <- 0:20
+teorica <- pdf_betabinomial(x_vals, size = 16, a = 2, b = 4)
+
+hist(result_X[(burn_in + 1):N], breaks = seq(-0.5, 16.5, by = 1), 
+     freq = FALSE, col = "lightblue",
+     main = "Distribuicao Marginal de X vs Densidade Teorica Conjunta",
+     xlab = "x", ylab = "Densidade",
+     ylim = c(0, max(teorica) * 1.1))
+lines(x_vals, teorica, type = "l", col = "tomato2", lwd = 2)
+
+```
+
+# Questão 5
 Suponha que a densidade conjunta de $X, Y, Z$ seja dada por
 
 $$
 f(x,y,z) = C e^{-(x+y+z+axy+bxz+cyz)}, \quad x > 0,\; y > 0,\; z > 0,
 $$
 
-onde $a, b, c$ são constantes não negativas especificadas e $C$ não depende de $x, y, z$. Explique como podemos simular o vetor$(X, Y, Z)$ e realize uma simulação para estimar $\mathbb{E}[X]$ e $\mathbb{E}[XYZ]$ quando $a = b = c = 1$.
+onde $a, b, c$ são constantes não negativas especificadas e $C$ não depende de $x, y, z$. Explique como podemos simular o vetor$(X, Y, Z)$ e realize uma simulação para estimar $E[X]$ e $E[XYZ]$ quando $a = b = c = 1$.
 
 ## Solução
-
 Utilizaremos o método da aceitação e rejeição, uma forma adequada de gerar amostras de distribuições contínuas quando a função de densidade de probabilidade alvo pode ser calculada, mesmo sem a constante de normalização, e não é trivial amostrar diretamente dela. Esse método permite amostrar de uma distribuição alvo $f(x)$ usando uma distribuição proposta $g(x)$ da qual é fácil amostrar, desde que a densidade alvo seja "envelopada" pela proposta multiplicada por uma constante.
 
 ### Definições iniciais
@@ -337,7 +431,7 @@ Utilizaremos o método da aceitação e rejeição, uma forma adequada de gerar 
 $$ \frac{q(x,y,z)}{g(x,y,z)} = \frac{e^{-(x+y+z+axy+bxz+cyz)}}{e^{-(x+y+z)}} = e^{-(axy+bxz+cyz)} $$
 Como $a, b, c$ são constantes não negativas e $x, y, z > 0$, o termo $axy+bxz+cyz$ é sempre não negativo e por consequência, $-(axy+bxz+cyz)$ é sempre não positivo. O valor máximo de $e^{-(axy+bxz+cyz)}$ ocorre quando $axy+bxz+cyz$ é mínimo, ou seja, quando $x,y,z$ se aproximam de zero. Nesse limite, $e^{-(axy+bxz+cyz)} \to e^0 = 1$. Dessa forma, podemos escolher $\mathbf{c = 1}$.
 
-### Passo a passo do algoritmo
+### Passo a passo
 
 Repita os passos abaixo até que uma amostra seja aceita:
 
@@ -354,7 +448,7 @@ A eficiência deste algoritmo é a probabilidade média de aceitação, que é $
 Dada uma sequência de $N$ amostras independentes $(X_j, Y_j, Z_j)$ da distribuição desejada, podemos estimar a esperança de qualquer função $g(X,Y,Z)$ como a média amostral de $g(X_j,Y_j,Z_j)$.
 
 
-```{r}
+```{r densidade-vetores}
 gerar_vetor <- function(a, b, c) {
   accepted <- FALSE
   while (!accepted) {
@@ -378,14 +472,14 @@ b <- 1
 c <- 1
 n <- 10000
 
-matriz_simulacao <- matrix(NA, nrow = N_samples, ncol = 3)
+matriz_simulacao <- matrix(NA, nrow = n, ncol = 3)
 tentativas <- 0
 
 # simulação
 for (i in 1:n) {
   tentativa_atual <- 0
   aceito <- FALSE
-  while (!accepted_once) {
+  while (!aceito) { #aq estava accepted_once
     tentativa_atual <- tentativa_atual + 1
     Yx_cand <- rexp(1, rate = 1)
     Yy_cand <- rexp(1, rate = 1)
@@ -436,8 +530,6 @@ kable(resultados, caption = "Simulação Monte Carlo (a=b=c=1)")
 
 # Questão 6
 
-**POR CONTAS AINDA**
-
 ## Exercício 2.1
 Utilizando o método de integração de Monte Carlo, obtenha uma aproximação para as seguintes integrais.
 
@@ -451,7 +543,12 @@ f) $\int_{0}^{\infty} \int_{0}^{x} \exp\{ -(x+y) \}\, dy\, dx$
 
 ## Soluções
 
-a)
+a) 
+$$
+I \approx \frac{1}{N}\sum^N_{i=1}f(U_i)(b-a) \\
+\to \frac{1}{N}\sum^N_{i=1}e^{e^{x_i}}(1-0)
+$$
+
 ```{r integracao-a}
 set.seed(345)
 
@@ -474,6 +571,11 @@ print(resultado)
 ```
 
 b)
+$$
+I \approx \frac{1}{N}\sum^N_{i=1}f(U_i)(b-a) \\
+\to \frac{1}{N}\sum^N_{i=1}e^{x+x^2}(2-(-2))
+$$
+
 ```{r integracao-b}
 set.seed(345)
 
@@ -495,6 +597,13 @@ print(resultado)
 ```
 
 c)
+$$
+x = \frac{u}{1-u}, u \in (0,1) \text{ em } x \in (0, \infty) \\
+\frac{dx}{du} = \frac{1}{(1-u)^2} \\
+\int_0^1f(x(u))\frac{dx}{du}du = E_U[g(U)] \\
+\to I = \frac{1}{N}\sum^N_{i=1}g(U_i)
+$$
+
 ```{r integracao-c}
 set.seed(345)
 
@@ -515,7 +624,8 @@ resultado <- data.frame(
 print(resultado)
 ```
 
-f)
+f) Nesse caso, temos $P(Y \leq X)$ quando $X$ e $Y$ são iid $Exp(1)$.
+
 ```{r integracao-f, message=FALSE, warning=FALSE}
 set.seed(345)
 library(pracma)
@@ -524,15 +634,11 @@ f <- function(x, y) {
   exp(-(x + y))
 }
 
-g <- function(u, v) {
-  return(u^v * (-log(u)))
-}
-
 n <- 10000
-u <- runif(n)
-v <- runif(n)
-aprox <- mean(g(u, v))
+x <- rexp(n, rate = 1)
+y <- rexp(n, rate = 1)
 
+aprox <- mean(y <= x)
 
 numerica <- integral2(f, 0, 100, 0, function(x){x}) #n grande para simulação, visto que o pracma não aceita Inf
 

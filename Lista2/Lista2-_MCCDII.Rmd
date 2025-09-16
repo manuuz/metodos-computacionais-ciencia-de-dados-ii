@@ -10,6 +10,7 @@ output:
     keep_tex: true
   html_document: default
 ---
+
 # Questão 1
 ## Exercício 1.14
 Pesquise algum pacote do R em que o método da rejeição adaptativa está implementado e gere amostras das distribuições Gama e Beta. Considere diferentes valores para os parâmetros destas distribuições.
@@ -312,13 +313,126 @@ Pode-se mostrar que, para $a, b, n$ fixos, as distribuições condicionais são 
 ## Solução
 
 
-# Questão 5
+# Questão 5 - MARI
 Suponha que a densidade conjunta de $X, Y, Z$ seja dada por
 
-onde $a, b, c$ são constantes não negativas especificadas e $C$ não depende de $x, y, z$. Explique como podemos simular o vetor$(X, Y, Z)$ e realize uma simulação para estimar $E[X]$ e $E[XYZ]$ quando $a = b = c = 1$.
+$$
+f(x,y,z) = C e^{-(x+y+z+axy+bxz+cyz)}, \quad x > 0,\; y > 0,\; z > 0,
+$$
+
+onde $a, b, c$ são constantes não negativas especificadas e $C$ não depende de $x, y, z$. Explique como podemos simular o vetor$(X, Y, Z)$ e realize uma simulação para estimar $\mathbb{E}[X]$ e $\mathbb{E}[XYZ]$ quando $a = b = c = 1$.
 
 ## Solução
 
+Utilizaremos o método da aceitação e rejeição, uma forma adequada de gerar amostras de distribuições contínuas quando a função de densidade de probabilidade alvo pode ser calculada, mesmo sem a constante de normalização, e não é trivial amostrar diretamente dela. Esse método permite amostrar de uma distribuição alvo $f(x)$ usando uma distribuição proposta $g(x)$ da qual é fácil amostrar, desde que a densidade alvo seja "envelopada" pela proposta multiplicada por uma constante.
+
+### Definições iniciais
+
+1) Defina a densidade alvo (não normalizada): uma vez que a constante é desconhecida, podemos trabalhar com a função de densidade alvo não normalizada ($q(x,y,z) = e^{-(x+y+z+axy+bxz+cyz)}$).
+
+2) Escolha uma densidade proposta $g(x,y,z)$: nesse caso, uma escolha natural é uma distribuição exponencial independente para cada variável (tomemos $\lambda=1$) para cada componente, porque é fácil amostrar desse densidade e tem o mesmo suporte da densidade alvo (pois $(x>0, y>0, z>0)$). Temos então $g(x,y,z) = e^{-x} e^{-y} e^{-z} = e^{-(x+y+z)}$ para $x,y,z > 0$.
+
+3) Determine a constante $c$ do envelope: a constante $c$ é definida como o valor máximo de $q(x,y,z)/g(x,y,z)$ sobre todo o domínio das variáveis.
+
+$$ \frac{q(x,y,z)}{g(x,y,z)} = \frac{e^{-(x+y+z+axy+bxz+cyz)}}{e^{-(x+y+z)}} = e^{-(axy+bxz+cyz)} $$
+Como $a, b, c$ são constantes não negativas e $x, y, z > 0$, o termo $axy+bxz+cyz$ é sempre não negativo e por consequência, $-(axy+bxz+cyz)$ é sempre não positivo. O valor máximo de $e^{-(axy+bxz+cyz)}$ ocorre quando $axy+bxz+cyz$ é mínimo, ou seja, quando $x,y,z$ se aproximam de zero. Nesse limite, $e^{-(axy+bxz+cyz)} \to e^0 = 1$. Dessa forma, podemos escolher $\mathbf{c = 1}$.
+
+### Passo a passo do algoritmo
+
+Repita os passos abaixo até que uma amostra seja aceita:
+
+1) Gere um vetor candidato $(Y_x, Y_y, Y_z)$ da distribuição proposta $g(x,y,z)$ (o que significa gerar $Y_x \sim \text{Exponencial}(1)$, $Y_y \sim \text{Exponencial}(1)$ e $Y_z \sim \text{Exponencial}(1)$ independentemente).
+
+2) Gere um número aleatório $U$ de uma distribuição Uniforme(0,1).
+
+3)Calcule a razão de aceitação ($r = e^{-(aY_xY_y+bY_xY_z+cY_yY_z)}$).
+
+4)Se $U < r$ razão, aceite o candidato. Ele será o vetor $(X, Y, Z)$ amostrado. Caso contrário, rejeite o candidato e retorne ao passo 1.
+
+A eficiência deste algoritmo é a probabilidade média de aceitação, que é $\frac{1}{c} \int q(y)dy / \int g(y)dy$. Como $g(y)$ é uma densidade de probabilidade (portanto $\int g(y)dy = 1$) e $c=1$, a eficiência é $\int q(y)dy$. Este valor é o inverso da constante de normalização $C$ da fdp alvo (ou seja, $\text{Eficiência} = 1/C$). Um valor de $1/C$ próximo de 1 indica alta eficiência.
+
+Dada uma sequência de $N$ amostras independentes $(X_j, Y_j, Z_j)$ da distribuição desejada, podemos estimar a esperança de qualquer função $g(X,Y,Z)$ como a média amostral de $g(X_j,Y_j,Z_j)$.
+
+
+```{r}
+gerar_vetor <- function(a, b, c) {
+  accepted <- FALSE
+  while (!accepted) {
+    Yx <- rexp(1, rate = 1)
+    Yy <- rexp(1, rate = 1)
+    Yz <- rexp(1, rate = 1)
+    
+    U <- runif(1)
+    razao <- exp(-(a * Yx * Yy + b * Yx * Yz + c * Yy * Yz))
+
+      if (U < razao) {
+      accepted <- TRUE
+      return(c(Yx, Yy, Yz))
+    }
+  }
+}
+
+# parâmetros
+a <- 1
+b <- 1
+c <- 1
+n <- 10000
+
+matriz_simulacao <- matrix(NA, nrow = N_samples, ncol = 3)
+tentativas <- 0
+
+# simulação
+for (i in 1:n) {
+  tentativa_atual <- 0
+  aceito <- FALSE
+  while (!accepted_once) {
+    tentativa_atual <- tentativa_atual + 1
+    Yx_cand <- rexp(1, rate = 1)
+    Yy_cand <- rexp(1, rate = 1)
+    Yz_cand <- rexp(1, rate = 1)
+    U_cand <- runif(1)
+    val_razao <- exp(-(a * Yx_cand * Yy_cand + b * Yx_cand * Yz_cand + c * Yy_cand * Yz_cand))
+
+    if (U_cand < val_razao) {
+      matriz_simulacao[i, ] <- c(Yx_cand, Yy_cand, Yz_cand)
+      aceito <- TRUE
+    }
+  }
+  tentativas <- tentativas + tentativa_atual
+}
+
+amostraX <- matriz_simulacao[, 1]
+amostraY <- matriz_simulacao[, 2]
+amostraZ <- matriz_simulacao[, 3]
+
+esperancaX <- mean(amostraX)
+XYZ <- amostraX * amostraY * amostraZ
+esperancaXYZ <- mean(XYZ)
+
+erropX <- sd(amostraX)/sqrt(n)
+erropXYZ <- sd(XYZ)/sqrt(n)
+
+eficiencia <- n/tentativas
+
+library(knitr)
+resultados <- data.frame(
+  Medida = c("Número de amostras simuladas",
+             "Eficiência do método de Aceitação-Rejeição",
+             "Estimativa de E[X]",
+             "Erro Padrão de E[X]",
+             "Estimativa de E[XYZ]",
+             "Erro Padrão de E[XYZ]"),
+  Valor = c(n,
+            round(eficiencia, 4),
+            round(esperancaX, 4),
+            round(erropX, 4),
+            round(esperancaXYZ, 4),
+            round(erropXYZ, 4))
+)
+
+kable(resultados, caption = "Simulação Monte Carlo (a=b=c=1)")
+
+```
 
 # Questão 6
 
@@ -429,14 +543,14 @@ resultado <- data.frame(
 print(resultado)
 ```
 
-## Exercício 2.2
+## Exercício 2.2 - MARI
 Faça um estudo Monte Carlo para estimar o viés e o EQM dos seguintes
 estimadores para a variância populacional:
 
 ## Solução
 
 
-## Exercício 2.4
+## Exercício 2.4 - MARI
 Suponha o intervalo de 95% de confiança t-Student para a média populacional com dados não normais. A probabilidade de que o intervalo de confiança cubra a verdadeira média não é necessariamente 0,95, pois uma suposição não é atendida. Use um estudo Monte Carlo para estimar a probabilidade de cobertura (e o erro padrão desta estimativa) do intervalo t-Student para amostras de tamanhos $n$=20, 30 e 100 das seguintes distribuições:
 
 a) $\chi^2_2$
@@ -446,13 +560,13 @@ b) Outra distribuição assimétrica de sua preferência.
 ## Solução
 
 
-## Exercício 2.5
+## Exercício 2.5 - MARI
 Plote a curva de poder empírica para o teste $t$ no Exemplo 3.7, mudando as hipóteses para $H_0 : \mu = 500$ vs $H_1 : \mu \ne 500$ e mantendo o nível de significância de $\alpha = 0,05$. Em um mesmo gráfico, plote as curvas de poder para os tamanhos amostrais 10, 20, 30, 40 e 50, usando cores diferentes.
 
 ## Solução
 
 
-## Exercício 2.7
+## Exercício 2.7 - MARI
 Implemente um algoritmo para fazer um teste de hipóteses Monte Carlo para testar se a média populacional é igual a um valor pré-especificado, assumindo que os dados são normalmente distribuidos com desvio padrão conhecido. Em um pequeno estudo Monte Carlo, compare o poder do teste implementado com o teste Normal (utilize a função implementada em algum pacote do R).
 
 ## Solução

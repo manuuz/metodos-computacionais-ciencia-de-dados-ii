@@ -648,9 +648,8 @@ resultado <- data.frame(
 print(resultado)
 ```
 
-## Exercício 2.2 - MARI
-Faça um estudo Monte Carlo para estimar o viés e o EQM dos seguintes
-estimadores para a variância populacional:
+## Exercício 2.2
+Faça um estudo Monte Carlo para estimar o viés e o EQM dos seguintes estimadores para a variância populacional:
 
 $$
 \hat{\sigma}_1^2 = \frac{1}{n-1} \sum_{i=1}^{n} (x_i - \bar{x})^2 
@@ -662,33 +661,182 @@ Gere os dados de diferentes distribuições e considere diferentes tamanhos amos
 
 ### Solução
 
-```{r estimadores-variancia}
+Para cada réplica, vamos gerar uma amostra e calcular os dois estimadores da variância (o não viciado e o viciado), guardando-os em vetores. Depois, vamos retornar as medidas (viés, EQM e seus erros padrão) para cada estimador.
 
+```{r estimadores-variancia}
+# estruturação
+library(knitr)
+set.seed(2023032088)
+m <- 1000
+n <- c(10, 30, 100)
+resultados <- list()
+
+simulacao <- function(n, m, dist, mu, sigma2, r_function) {
+  sigma2_real <- sigma2
+  nao_viciado <- numeric(m)
+  viciado <- numeric(m)
+  
+  for (j in 1:m) {
+    x <- r_function(n)
+    # cálculo dos estimadores
+    nao_viciado[j] <- var(x) 
+    viciado[j] <- (n - 1) / n * nao_viciado[j]
+  }
+  
+  vies <- function(estimador) {
+    G_vies <- estimador - sigma2_real 
+    vies_estimado <- mean(G_vies)
+    ep_vies <- sd(G_vies) / sqrt(m)
+    return(c(Vies = vies_estimado, SE_Vies = ep_vies))
+  }
+  
+  eqm <- function(estimador) {
+    G_eqm <- (estimador - sigma2_real)^2 
+    eqm_estimado <- mean(G_eqm)
+    ep_eqm <- sd(G_eqm) / sqrt(m)
+    return(c(EQM = eqm_estimado, SE_EQM = ep_eqm))
+  }
+
+  vies1 <- vies(nao_viciado)
+  eqm1  <- eqm(nao_viciado)
+  vies2 <- vies(viciado)
+  eqm2  <- eqm(viciado)
+  
+  res1 <- data.frame(
+    Distribuicao = dist, n = n, Estimador = "Sigma1^2 (Não Viciado)",
+    vies = vies1["Vies"], se_vies = vies1["SE_Vies"],
+    eqm = eqm1["EQM"], se_eqm = eqm1["SE_EQM"]
+  )
+  res2 <- data.frame(
+    Distribuicao = dist, n = n, Estimador = "Sigma2^2 (Viciado)",
+    vies = vies2["Vies"], se_vies = vies2["SE_Vies"],
+    eqm = eqm2["EQM"], se_eqm = eqm2["SE_EQM"]
+  )
+  
+  return(rbind(res1, res2))
+}
+
+# exemplos
+# N(10, 4), sigma^2 = 4
+mu_norm <- 10
+sigma2_norm <- 4
+r_norm <- function(n) { rnorm(n, mean = mu_norm, sd = sqrt(sigma2_norm)) }
+
+for (n in n) {
+  resultados[[length(resultados) + 1]] <- simulacao(
+    n = n, m = m, dist = "Normal (N(10, 4))", mu = mu_norm, 
+    sigma2 = sigma2_norm, r_function = r_norm
+  )
+}
+
+# Exp(0.5), sigma^2 = 1/0.5^2 = 4
+lambda_exp <- 0.5
+mu_exp <- 1/lambda_exp
+sigma2_exp <- 1/lambda_exp^2
+r_exp <- function(n) { rexp(n, rate = lambda_exp) }
+
+for (n in n) {
+  resultados[[length(resultados) + 1]] <- simulacao(
+    n = n, m = m, dist = "Exponencial (Exp(0.5))", mu = mu_exp, 
+    sigma2 = sigma2_exp, r_function = r_exp
+  )
+}
+
+
+tabela_final <- do.call(rbind, resultados)
+tabela_final[, 4:7] <- round(tabela_final[, 4:7], 6)
+kable(tabela_final, caption = "Viés e EQM da Variância")
 ```
 
 
-## Exercício 2.4 - MARI
+## Exercício 2.4
 Suponha o intervalo de 95% de confiança t-Student para a média populacional com dados não normais. A probabilidade de que o intervalo de confiança cubra a verdadeira média não é necessariamente 0,95, pois uma suposição não é atendida. Use um estudo Monte Carlo para estimar a probabilidade de cobertura (e o erro padrão desta estimativa) do intervalo t-Student para amostras de tamanhos $n$=20, 30 e 100 das seguintes distribuições:
 
 a) $\chi^2_2$
 
 b) Outra distribuição assimétrica de sua preferência.
 
+### Passo a passo
+
+1) A partir de uma função auxiliar (`estimar`), calcule a cobertura empírica como a proporção de vezes que o IC continha o valor verdadeiro da média e o erro padrão da cobertura pela fórmula $\sqrt{p(1-p)/m}$.
+
+2) Para cada n, gera m amostras de tamanho n da distribuição.
+
+3) Aplique o teste t em cada amostra para construir o IC de 95%.
+
+4) Verifique se a média verdadeira está dentro do intervalo e armazene os resultados.
+
 ### Solução
+
+```{r pre-ic}
+set.seed(2023032088)
+m <- 20000
+alpha <- 0.05
+confianca_nominal <- 1 - alpha
+n <- c(20, 30, 100)
+resultados <- list()
+i <- 1
+
+estimar <- function(coberturas, m, dist, n) {
+  y_chapeu <- mean(coberturas)
+  ep_estimado <- sqrt(y_chapeu * (1 - y_chapeu) / m)
+  
+  return(data.frame(
+    Distribuicao = dist,
+    n = n,
+    Cobertura_Empirica = y_chapeu,
+    Erro_Padrao = ep_estimado)
+    )
+}
+```
 
 a)
 
 ```{r ic-quiquadrado}
+mu_chisq <- 2
 
+for (n in n) {
+  coberturas_chisq <- replicate(m, expr = {
+    x <- rchisq(n, df = 2)
+    teste_t <- t.test(x, conf.level = confianca_nominal)
+    confianca <- teste_t$conf.int
+    confianca[1] <= mu_chisq && mu_chisq <= confianca[2]
+    }
+  )
+
+  resultados[[i]] <- estimar(coberturas_chisq, m, "Chi^2_2 (mu=2)", n)
+  i <- i + 1
+}
 ```
 
-b)
+b) A distribuição escolhida foi uma $Gama(2,1)$.
 
 ```{r ic-gama}
+mu_gamma <- 2 
 
+for (n in n) {
+  coberturas_gamma <- replicate(m, expr = {
+    x <- rgamma(n, shape = 2, rate = 1)
+    teste_t <- t.test(x, conf.level = confianca_nominal)
+    confianca <- teste_t$conf.int
+    confianca[1] <= mu_gamma && mu_gamma <= confianca[2]
+    }
+  )
+  resultados[[i]] <- estimar(coberturas_gamma, m, "Gamma(2, 1) (mu=2)", n)
+  i <- i + 1
+}
 ```
 
-## Exercício 2.5 - MARI
+Resultados:
+
+```{r resultados2.4}
+tabela_final <- do.call(rbind, resultados)
+tabela_final$Cobertura_Empirica <- round(tabela_final$Cobertura_Empirica, 4)
+tabela_final$Erro_Padrao <- round(tabela_final$Erro_Padrao, 5)
+kable(tabela_final, caption = "IC de 95% para distribuições assimétricas")
+```
+
+## Exercício 2.5
 Plote a curva de poder empírica para o teste $t$ no Exemplo 3.7, mudando as hipóteses para $H_0 : \mu = 500$ vs $H_1 : \mu \ne 500$ e mantendo o nível de significância de $\alpha = 0,05$. Em um mesmo gráfico, plote as curvas de poder para os tamanhos amostrais 10, 20, 30, 40 e 50, usando cores diferentes.
 
 ### Exemplo 3.7
@@ -770,12 +918,80 @@ lines(mu, power, lty=3)
 detach(package:Hmisc)
 ```
 
+### Passo a passo
+
+1) Crie uma matriz para guardar as probabilidades de rejeição de $H_0$ quando falsa (o poder), com linhas representando diferentes valores de $\mu$ alternativos e colunas representando diferentes tamanhos amostrais.
+
+2) Para cada tamanho de amostra n, repita o processo de simulação.
+
+3) Para cada valor de média $\mu$ da sequência, simule m amostras da normal, aplique o teste t e calcule a proporção de rejeições (essa proporção é armazenada na matriz como a estimativa do poder).
+
 ### Solução
 
 ```{r curva-poder}
+set.seed(2023032088)
+m <- 5000
+alpha <- 0.05
+mu0 <- 500
+sigma <- 100
+n <- c(10, 20, 30, 40, 50)
+
+mu_alternativa <- seq(400, 600, by = 5)
+
+# matriz para armazenar as estimativas de poder (linhas = mu, colunas = n)
+poder <- matrix(NA, nrow = length(mu_alternativa), ncol = length(n))
+colnames(poder) <- paste0("n=", n)
+
+for (j in 1:length(n)) {
+  novo_n <- n[j]
+  
+  for (i in 1:length(mu_alternativa)) {
+    mu_real <- mu_alternativa[i]
+    
+    pvalores <- replicate(m, expr = {
+      x <- rnorm(novo_n, mean = mu_real, sd = sigma) 
+      teste_t <- t.test(x, alternative = "two.sided", mu = mu0)
+      teste_t$p.value
+      }
+    )
+    poder[i, j] <- mean(pvalores < alpha)
+  }
+}
+
+cores <- c("blue", "red", "green4", "purple", "orange")
+curvas <- paste("n =", n)
+par(mar = c(5, 4, 4, 6))
+
+plot(mu_alternativa, poder[, 1], 
+     type = "l", 
+     col = cores[5], 
+     lwd = 2,
+     ylim = c(0, 1),
+     xlab = expression(paste("Média Populacional (", mu, ")")), 
+     ylab = "Poder",
+     main = "Curva de Poder Empírica para o Teste t Bilateral",
+     las = 1)
+
+for (j in 2:length(n)) {
+  lines(mu_alternativa, poder[, j], col = cores[j], lwd = 2)
+}
+
+# referência
+abline(h = alpha, lty = 2, col = "gray50")
+abline(v = mu0, lty = 3, col = "gray50")
+
+legend("topright",
+       inset = c(-0.3,0),
+       legend = curvas,
+       col = cores, 
+       lwd = 2,
+       bty = "n",
+       xpd = TRUE)
+
+kable(round(poder[c(1, 11, 21, 31, 41), ], 4), caption = "Poder estimado")
 ```
 
-## Exercício 2.7 - MARI
+## Exercício 2.7
 Implemente um algoritmo para fazer um teste de hipóteses Monte Carlo para testar se a média populacional é igual a um valor pré-especificado, assumindo que os dados são normalmente distribuidos com desvio padrão conhecido. Em um pequeno estudo Monte Carlo, compare o poder do teste implementado com o teste Normal (utilize a função implementada em algum pacote do R).
 
 ### Solução

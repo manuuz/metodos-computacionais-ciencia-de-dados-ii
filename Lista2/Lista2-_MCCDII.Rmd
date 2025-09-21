@@ -448,7 +448,7 @@ A eficiência deste algoritmo é a probabilidade média de aceitação, que é $
 Dada uma sequência de $N$ amostras independentes $(X_j, Y_j, Z_j)$ da distribuição desejada, podemos estimar a esperança de qualquer função $g(X,Y,Z)$ como a média amostral de $g(X_j,Y_j,Z_j)$.
 
 
-```{r densidade-vetores}
+```{r simulacao-vetores}
 gerar_vetor <- function(a, b, c) {
   accepted <- FALSE
   while (!accepted) {
@@ -525,7 +525,6 @@ resultados <- data.frame(
 )
 
 kable(resultados, caption = "Simulação Monte Carlo (a=b=c=1)")
-
 ```
 
 # Questão 6
@@ -541,7 +540,7 @@ c) $\int_{0}^{\infty} x (1 + x^2)^{-2}\, dx$
 
 f) $\int_{0}^{\infty} \int_{0}^{x} \exp\{ -(x+y) \}\, dy\, dx$
 
-## Soluções
+### Soluções
 
 a) 
 $$
@@ -653,7 +652,19 @@ print(resultado)
 Faça um estudo Monte Carlo para estimar o viés e o EQM dos seguintes
 estimadores para a variância populacional:
 
-## Solução
+$$
+\hat{\sigma}_1^2 = \frac{1}{n-1} \sum_{i=1}^{n} (x_i - \bar{x})^2 
+\quad \text{e} \quad 
+\hat{\sigma}_2^2 = \frac{1}{n} \sum_{i=1}^{n} (x_i - \bar{x})^2.
+$$
+
+Gere os dados de diferentes distribuições e considere diferentes tamanhos amostrais. Utilize $m = 1000$ réplicas de Monte Carlo. Estime o erro padrão destas estimativas.
+
+### Solução
+
+```{r estimadores-variancia}
+
+```
 
 
 ## Exercício 2.4 - MARI
@@ -663,21 +674,112 @@ a) $\chi^2_2$
 
 b) Outra distribuição assimétrica de sua preferência.
 
-## Solução
+### Solução
 
+a)
+
+```{r ic-quiquadrado}
+
+```
+
+b)
+
+```{r ic-gama}
+
+```
 
 ## Exercício 2.5 - MARI
 Plote a curva de poder empírica para o teste $t$ no Exemplo 3.7, mudando as hipóteses para $H_0 : \mu = 500$ vs $H_1 : \mu \ne 500$ e mantendo o nível de significância de $\alpha = 0,05$. Em um mesmo gráfico, plote as curvas de poder para os tamanhos amostrais 10, 20, 30, 40 e 50, usando cores diferentes.
 
-## Solução
+### Exemplo 3.7
 
+Suponha que $X_1, \dots, X_n$ seguem distribuição $N(\mu, \sigma^2)$. Deseja-se testar, com nível de significância $\alpha = 0,05$:
+
+$$
+H_0: \mu = 500 \quad \text{vs} \quad H_1: \mu > 500
+$$
+
+Sob a hipótese nula,  
+
+$$
+T = \frac{\bar{X} - 500}{S/\sqrt{n}} \sim t_{n-1}.
+$$  
+
+onde $t_{n-1}$ denota a distribuição $t$-Student com $n-1$ graus de liberdade.
+
+a) Use o método de Monte Carlo para calcular a probabilidade do erro tipo I quando $\sigma = 100$;
+
+b) Use simulação para estimar o poder e plotar a curva de poder empírico.
+
+```{r}
+## Estimando o nível de significância
+n <- 20
+alpha <- .05
+mu0 <- 500
+sigma <- 100
+m <- 10000 # número de réplicas
+
+p <- numeric(m) # guardando pvalor
+for (j in 1:m) {
+  x <- rnorm(n, mu0, sigma)
+  ttest <- t.test(x, alternative = "greater", mu = mu0)
+  p[j] <- ttest$p.value
+}
+
+p.hat <- mean(p < alpha)
+se.hat <- sqrt(p.hat * (1 - p.hat) / m)
+print(c(p.hat, se.hat))
+
+## Avaliando o erro tipo I para diferentes valores de mu para o teste mu<=500
+mu0s <- seq(450, 500, by=1)
+p <- numeric(m) #storage for p-values
+p.hat <- numeric(length(mu0s))
+for(l in 1:length(mu0s)){
+  for (j in 1:m) {
+    x <- rnorm(n, mu0s[l], sigma)
+    ttest <- t.test(x, alternative = "greater", mu = mu0)
+    p[j] <- ttest$p.value
+  }
+  p.hat[l] <- mean(p < alpha)
+}
+
+plot(mu0s, p.hat, type="b", pch=16, cex=0.5, ylim=c(0,0.06))
+abline(h=0.05, col=2, lty=2)
+
+##  Funcao poder
+n <- 20; m <- 1000; mu0 <- 500; sigma <- 100
+mu <- c(seq(450, 650, 10)) 
+k <- length(mu); power <- numeric(k)
+for (i in 1:k) {
+  mu_real <- mu[i]
+  pvalues <- replicate(m, expr = {
+    x <- rnorm(n, mean = mu_real, sd = sigma)
+    ttest <- t.test(x, alternative = "greater", mu = mu0)
+    ttest$p.value } )
+  power[i] <- mean(pvalues < .05)
+}
+
+plot(mu, power, xlab = bquote(theta))
+abline(v = mu0, lty = 2, col=2); abline(h = .05, lty = 2,col=4)
+
+# adicionando erro padrão
+library(Hmisc)
+se <- sqrt(power * (1-power) / m)
+errbar(mu, power, yplus = power+se, yminus = power-se, add = T)
+lines(mu, power, lty=3)
+detach(package:Hmisc)
+```
+
+### Solução
+
+```{r curva-poder}
+```
 
 ## Exercício 2.7 - MARI
 Implemente um algoritmo para fazer um teste de hipóteses Monte Carlo para testar se a média populacional é igual a um valor pré-especificado, assumindo que os dados são normalmente distribuidos com desvio padrão conhecido. Em um pequeno estudo Monte Carlo, compare o poder do teste implementado com o teste Normal (utilize a função implementada em algum pacote do R).
 
-## Solução
+### Solução
 
+```{r th-media}
 
-
-
- 
+```

@@ -1,0 +1,40 @@
+---
+title: "Trabalho1-MCCDII"
+author: "Emanuelle Oliveira"
+date: "2025-10-02"
+output: html_document
+---
+
+# Geração de Amostras
+
+## Método da Rejeição Qui-Quadrado 
+```{r rejection_chi_squared}
+chi_rejection <- function(n){
+  x <- numeric(n)
+  i <- 0
+  
+  while(i < n){
+    y_candidato <- rexp(1, rate=1/4)
+    U <- runif(1, 0, 1)
+    
+    if(U <= exp(-y_candidato/4)){
+      i <- i + 1
+      x[i] <- y_candidato
+    }
+  }
+}
+```
+
+## Método da Transforma Inversa Pareto
+```{r icdf_pareto}
+pareto_icdf <- function(n, a, b){
+  U <- runif(n, 0, 1)
+  x <- b * (U^(-1/a))
+}
+```
+
+## SIR Slash
+```{r sir_slash}
+slash_sir <- function(){
+}
+```

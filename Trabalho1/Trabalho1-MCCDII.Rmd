@@ -5,9 +5,20 @@ date: "2025-10-02"
 output: html_document
 ---
 
+```{r libraries, message=FALSE, warning=FALSE}
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(nortest)
+library(tseries)
+library(gt)     
+library(scales) 
+set.seed(89)
+```
+
 # Geração de Amostras
 
-## Método da Rejeição Qui-Quadrado 
+## Método da Rejeição Qui-Quadrado
 ```{r rejection_chi_squared}
 chi_rejection <- function(n){
   x <- numeric(n)
@@ -22,7 +33,7 @@ chi_rejection <- function(n){
       x[i] <- y_candidato
     }
   }
-  return(x) #tive que colocar porque is.numeric(x) = FALSE
+  return(x)
 }
 ```
 
@@ -31,62 +42,223 @@ chi_rejection <- function(n){
 pareto_icdf <- function(n, a, b){
   U <- runif(n, 0, 1)
   x <- b * (U^(-1/a))
+  return(x) 
 }
 ```
 
 ## SIR Slash
 ```{r sir_slash}
-slash_sir <- function(n, m){
-  x <- rnorm(n)
-  f <- sapply(x, function(y) 
+slash_sir <- function(n, n_cand = n * 10){ 
+  x_cand <- rnorm(n_cand)
+  f <- sapply(x_cand, function(y) 
     integrate(function(u) dnorm(u * y) * u, lower = 0, upper = 1)$value)
-  g <- dnorm(x)
-  w <- f / g
+  g <- dnorm(x_cand)
+  
+  w <- f / (g + 1e-10) 
   w_norm <- w / sum(w)
   
-  indice <- sample(seq_len(n), size = m, replace = TRUE, prob = w_norm)
-  x_sir <- x[indice]
-
+  indices <- sample(seq_len(n_cand), size = n, replace = TRUE, prob = w_norm)
+  x_sir <- x_cand[indices]
+  
   return(x_sir)
 }
 ```
 
 ## Simulação de Monte Carlo e Avaliação do Poder
 ```{r poder_mc}
-library(nortest)
-library(tseries)
-
 poder_mc <- function(geradora, n, m = 1000, alpha = 0.05) {
-  rejeita_sw <- rejeita_ad <- rejeita_jb <- numeric(m)
+  rejeita_sw <- rejeita_ad <- rejeita_jb <- rep(NA, m)
   
   for (i in 1:m) {
     x <- geradora(n)
-    p_sw <- shapiro.test(x)$p.value
-    p_ad <- ad.test(x)$p.value
-    p_jb <- jarque.bera.test(x)$p.value
-    
-    rejeita_sw[i] <- (p_sw < alpha)
-    rejeita_ad[i] <- (p_ad < alpha)
-    rejeita_jb[i] <- (p_jb < alpha)
+    try({
+      rejeita_sw[i] <- (shapiro.test(x)$p.value < alpha)
+      rejeita_ad[i] <- (ad.test(x)$p.value < alpha)
+      rejeita_jb[i] <- (jarque.bera.test(x)$p.value < alpha)
+    }, silent = TRUE)
   }
   
   data.frame(
     Tamanho = n,
-    `Réplicas` = m,
-    `Poder Shapiro-Wilk` = mean(rejeita_sw),
-    `Poder Anderson-Darling` = mean(rejeita_ad),
-    `Poder Jarque-Bera` = mean(rejeita_jb)
+    `Poder.Shapiro.Wilk` = mean(rejeita_sw, na.rm = TRUE),
+    `Poder.Anderson.Darling` = mean(rejeita_ad, na.rm = TRUE),
+    `Poder.Jarque.Bera` = mean(rejeita_jb, na.rm = TRUE)
   )
 }
 ```
 
-## Cenários
-```{r cenarios}
-#sempre declarar os parâmetros dentro da geradora
+# Tabela Referência
+```{r estudo-erro-tipo1-vs-n, cache=TRUE}
+sigma_fixed <- 1
+sample_sizes <- c(10, 20, 30, 50)
+M <- 1000 
 
-poder_mc(function(n) chi_rejection(n), n = 50, m = 1000)
+results_list_tipo1_vs_n <- list()
+for (n_val in sample_sizes) {
+  
+  normal_generator_fixo <- function(n) {
+    rnorm(n, mean = 0, sd = sigma_fixed)
+  }
+  
+  sim_result <- poder_mc(normal_generator_fixo, n = n_val, m = M)
+  
+  results_list_tipo1_vs_n[[length(results_list_tipo1_vs_n) + 1]] <- sim_result
+}
 
-poder_mc(function(n) pareto_icdf(n, a = 2, b = 1), n = 50, m = 1000)
+results_tipo1_vs_n_df <- bind_rows(results_list_tipo1_vs_n)
 
-poder_mc(function(n) slash_sir(n, m = n), n = 50, m = 1000)
+table_data_tipo1_vs_n <- results_tipo1_vs_n_df %>%
+  pivot_longer(
+    cols = starts_with("Poder."),
+    names_to = "Teste",
+    values_to = "Erro_Tipo_I"
+  ) %>%
+  mutate(Teste = gsub("Poder.", "", Teste),
+         Teste = gsub("_", "-", Teste)) %>%
+  pivot_wider(
+    names_from = Tamanho,
+    values_from = Erro_Tipo_I
+  )
+
+
+tabela_erro_tipo1_vs_n <- table_data_tipo1_vs_n %>%
+  gt() %>%
+  
+  tab_header(
+    title = "Taxa Real de Erro do Tipo I por Tamanho de Amostra",
+    subtitle = md(paste0("Desvio Padrão Fixo *σ* = ", sigma_fixed, ", Nível de significância nominal *α* = 0.05"))
+  ) %>%
+  
+  cols_label(
+    Teste = "Teste de Normalidade"
+  ) %>%
+
+  fmt_number(
+    columns = everything(),
+    decimals = 4
+  ) %>%
+  
+  tab_spanner(
+    label = "Tamanho da Amostra (n)",
+    columns = everything()
+  ) %>%
+
+  tab_options(
+    table.border.top.color = "black",
+    heading.border.bottom.color = "black",
+    column_labels.border.bottom.color = "black",
+    table_body.hlines.color = "lightgrey",
+    table_body.border.bottom.color = "black"
+  )
+
+tabela_erro_tipo1_vs_n
+```
+
+# Cenários
+
+## Execução da Simulação
+```{r simulacao}
+
+geradoras_list <- list(
+  "Qui-Quadrado (df=2)" = function(n) chi_rejection(n),
+  "Pareto (a=2, b=1)"   = function(n) pareto_icdf(n, a = 2, b = 1),
+  "Slash"               = function(n) slash_sir(n = n) 
+)
+
+results_list <- list()
+
+for (dist_name in names(geradoras_list)) {
+  geradora_func <- geradoras_list[[dist_name]]
+  
+  for (n_sample in sample_sizes) {
+    sim_result <- poder_mc(geradora_func, n = n_sample, m = M)
+    sim_result$Distribution <- dist_name 
+    
+    results_list[[length(results_list) + 1]] <- sim_result
+  }
+}
+
+results_df <- bind_rows(results_list)
+
+results_long <- results_df %>%
+  pivot_longer(
+    cols = starts_with("Poder."),
+    names_to = "Teste",
+    values_to = "Poder"
+  ) %>%
+  mutate(Teste = gsub("Poder.", "", Teste),
+         Teste = gsub("\\.", "-", Teste))
+```
+
+
+## Tabela de Resultados
+```{r simulacao-tabela-artigo}
+table_data <- results_df %>%
+  filter(Tamanho %in% sample_sizes) %>%
+  
+  rename(
+    n = Tamanho,
+    Distribuição = Distribution,
+    W = `Poder.Shapiro.Wilk`,
+    A2 = `Poder.Anderson.Darling`,
+    JB = `Poder.Jarque.Bera`
+  ) %>%
+  
+  arrange(Distribuição, n) %>%
+  mutate(max_power = pmax(W, A2, JB))
+
+tabela_poder <- table_data %>%
+  gt(groupname_col = "Distribuição") %>%
+  
+  cols_hide(columns = "max_power") %>%
+  
+  cols_label(
+    n = "n",
+    W = "W",
+    A2 = html("A<sup>2</sup>"),
+    JB = "JB"
+  ) %>%
+  
+  tab_header(
+    title = "Poder dos Testes de Normalidade",
+    subtitle = "Valores estimados via Simulação de Monte Carlo (M = 1000)"
+  ) %>%
+  
+  fmt_number(
+    columns = c(W, A2, JB),
+    decimals = 4
+  ) %>%
+  
+  tab_style(
+    style = cell_text(weight = "bold"),
+    locations = cells_body(
+      columns = W,
+      rows = W == max_power
+    )
+  ) %>%
+  tab_style(
+    style = cell_text(weight = "bold"),
+    locations = cells_body(
+      columns = A2,
+      rows = A2 == max_power
+    )
+  ) %>%
+  tab_style(
+    style = cell_text(weight = "bold"),
+    locations = cells_body(
+      columns = JB,
+      rows = JB == max_power
+    )
+  ) %>%
+
+  opt_table_font(font = "Arial") %>%
+  tab_options(
+    table.border.top.color = "black",
+    heading.border.bottom.color = "black",
+    table_body.hlines.color = "lightgrey",
+    table_body.border.bottom.color = "black",
+    source_notes.font.size = 12
+  )
+
+tabela_poder
 ```

@@ -1,6 +1,6 @@
 ---
 title: "Trabalho1-MCCDII"
-author: "Emanuelle Oliveira"
+author: "Emanuelle Oliveira, Mariana Fleming, Maria Luiza Oliveira"
 date: "2025-10-02"
 output: html_document
 ---
@@ -13,13 +13,17 @@ library(nortest)
 library(tseries)
 library(gt)     
 library(scales) 
+library(stats)
 set.seed(89)
 ```
 
 # Geração de Amostras
 
 ## Método da Rejeição Qui-Quadrado
+
 ```{r rejection_chi_squared}
+# Gráfico para verificação
+
 chi_rejection <- function(n){
   x <- numeric(n)
   i <- 0
@@ -37,6 +41,47 @@ chi_rejection <- function(n){
 }
 ```
 
+
+```{r graphic_chi_squared}
+# set.seed(42)
+amostra <- chi_rejection(10000)
+
+# Histograma no mesmo estilo visual
+hist(amostra, 
+     prob = TRUE, 
+     breaks = 100,
+     main = "Amostra Gerada vs. Densidade Teórica",
+     xlab = "Valores da Amostra (Qui-Quadrado)",
+     ylab = "Densidade",
+     col = "lightblue",
+     border = "gray40",
+     xlim = c(0, 8),
+     ylim = c(0, max(density(amostra)$y) * 1.2))
+
+# Densidade teórica da Qui-Quadrado(2)
+curve(dchisq(x, df = 2), 
+      from = 0, to = max(amostra),
+      add = TRUE, 
+      col = "red", 
+      lwd = 2)
+
+# Legenda padronizada
+legend("topright", 
+       legend = c("Histograma da Amostra", "Densidade Teórica (Chi²(2))"),
+       pch = c(22, NA),
+       pt.bg = c("lightblue", NA),
+       col = c("gray40", "red"),
+       lty = c(NA, 1),
+       lwd = c(NA, 2),
+       pt.cex = 1.6,
+       bty = "n",
+       cex = 0.9)
+
+# Subtítulo padronizado
+mtext("Método da Rejeição com proposta Exponencial(1/4)", 
+      side = 1, line = 4, cex = 0.9, font = 3)
+```
+
 ## Método da Transforma Inversa Pareto
 ```{r icdf_pareto}
 pareto_icdf <- function(n, a, b){
@@ -46,15 +91,95 @@ pareto_icdf <- function(n, a, b){
 }
 ```
 
+
+```{r graphic_pareto}
+# Gráfico para verificação
+
+a <- 2    # parâmetro de forma
+b <- 1    # parâmetro de escala
+
+# set.seed(77)
+amostra <- pareto_icdf(10000, a, b)
+
+hist(amostra, 
+     prob = TRUE,
+     breaks = "FD",
+     main = "Amostra Gerada vs. Densidade Teórica",
+     xlab = "Valores da Amostra",
+     ylab = "Densidade",
+     col = "lightblue",
+     border = "gray40",
+     xlim = c(b, quantile(amostra, 0.95)),
+     ylim = c(0, max(density(amostra)$y) * 1.2))
+
+# Densidade teórica da Pareto(a, b)
+curve((a * b^a) / (x^(a + 1)), 
+      from = b, to = quantile(amostra, 0.95),
+      add = TRUE, col = "red", lwd = 2)
+
+legend("topright", 
+       legend = c("Histograma da Amostra", "Densidade Teórica"),
+       pch = c(22, NA),
+       pt.bg = c("lightblue", NA),
+       col = c("gray40", "red"),
+       lty = c(NA, 1),
+       lwd = c(NA, 2),
+       pt.cex = 1.6,
+       bty = "n",
+       cex = 0.9)
+
+mtext("Método da Transformada Inversa - Pareto(a = 2, b = 1)",
+      side = 1, line = 4, cex = 0.9, font = 3)
+
+
+```
+
+
 ## SIR Slash
 ```{r sir_slash}
-slash_sir <- function(n, n_cand = n * 10){ 
-  x_cand <- rnorm(n_cand)
+slash_sir_t <- function(n, n_cand = n * 20, df_proposta = 2){
+  
+  # 1. Gerar candidatos da proposta t de Student
+  x_cand <- rt(n_cand, df = df_proposta)
+  
+  # 2. Calcular a densidade alvo (f) numericamente
   f <- sapply(x_cand, function(y) 
     integrate(function(u) dnorm(u * y) * u, lower = 0, upper = 1)$value)
-  g <- dnorm(x_cand)
   
+  # 3. Calcular a densidade da proposta t de Student (g)
+  g <- dt(x_cand, df = df_proposta)
+  
+  # 4. Calcular e normalizar os pesos
   w <- f / (g + 1e-10) 
+  w_norm <- w / sum(w)
+  
+  # 5. Reamostrar com base nos pesos 
+  indices <- sample(seq_len(n_cand), size = n, replace = TRUE, prob = w_norm)
+  x_sir <- x_cand[indices]
+  
+  return(x_sir)
+}
+```
+
+```{r graphic_slash}
+
+# Gráfico para verificação
+
+dslash <- function(y){
+  ifelse(y == 0, 
+         1 / (2 * sqrt(2 * pi)), 
+         (1 - exp(-y^2 / 2)) / (y^2 * sqrt(2 * pi)))
+}
+
+slash_sir_t <- function(n, n_cand = n * 20, df_proposta = 1){
+  x_cand <- rt(n_cand, df = df_proposta)
+  
+  f <- sapply(x_cand, function(y)  
+    integrate(function(u) dnorm(u * y) * u, lower = 0, upper = 1)$value)
+  
+  g <- dt(x_cand, df = df_proposta)
+  
+  w <- f / (g + 1e-10)  
   w_norm <- w / sum(w)
   
   indices <- sample(seq_len(n_cand), size = n, replace = TRUE, prob = w_norm)
@@ -62,6 +187,48 @@ slash_sir <- function(n, n_cand = n * 10){
   
   return(x_sir)
 }
+
+# set.seed(63)
+n_amostra <- 5000
+
+amostra_gerada <- slash_sir_t(n = n_amostra, n_cand = 100000, df_proposta = 4)
+
+dados_hist <- hist(amostra_gerada, breaks = 100, plot = FALSE)
+altura_maxima <- max(dados_hist$density)
+
+hist(amostra_gerada, 
+     prob = TRUE,
+     breaks = 100,
+     main = "Amostra Gerada vs. Densidade Teórica",
+     xlab = "Valores da Amostra (Slash)",
+     ylab = "Densidade",
+     col = "lightblue",
+     border = "gray40",
+     xlim = c(-10, 10),
+     ylim = c(0, altura_maxima * 1.2))
+
+
+mtext("Método SIR com proposta t-Student com 5 g.l.", side = 1, line = 4, cex = 0.9, font = 3)
+
+grid <- seq(-10, 10, length.out = 500)
+densidade_teorica <- dslash(grid)
+lines(grid, densidade_teorica, 
+      col = "red",
+      lwd = 2)
+
+legend("topright", 
+       legend = c("Histograma da Amostra", "Densidade Teórica (dslash)"),
+       pch = c(22, NA),
+       pt.bg = c("lightblue", NA),
+       pt.cex = 1.6,
+       col = c("gray40", "red"),
+       lty = c(NA, 1),
+       lwd = c(NA, 2),
+       inset = c(0.02, 0.02),
+       bty = "n",
+       cex = 0.9)
+
+
 ```
 
 ## Simulação de Monte Carlo e Avaliação do Poder
@@ -162,7 +329,7 @@ tabela_erro_tipo1_vs_n
 geradoras_list <- list(
   "Qui-Quadrado (df=2)" = function(n) chi_rejection(n),
   "Pareto (a=2, b=1)"   = function(n) pareto_icdf(n, a = 2, b = 1),
-  "Slash"               = function(n) slash_sir(n = n) 
+  "Slash"               = function(n) slash_sir_t(n = n) 
 )
 
 results_list <- list()
@@ -262,3 +429,56 @@ tabela_poder <- table_data %>%
 
 tabela_poder
 ```
+
+```{r}
+
+grafico_poder <- ggplot(results_long, 
+                        aes(x = Tamanho, 
+                            y = Poder, 
+                            color = Teste, 
+                            shape = Teste, 
+                            group = Teste)) +
+  
+  geom_line(linewidth = 1.2) +
+  geom_point(size = 3.5, stroke = 1) +
+  
+  facet_wrap(~ Distribution, ncol = 3, scales = "fixed") +
+  
+  labs(
+    title = "Poder dos Testes de Normalidade por Cenário",
+    subtitle = "Comparação entre Anderson-Darling, Jarque-Bera e Shapiro-Wilk",
+    x = "Tamanho da Amostra (n)",
+    y = "Poder Estimado (Taxa de Rejeição de H0)",
+    color = "Teste de Normalidade",
+    shape = "Teste de Normalidade"
+  ) +
+  
+  scale_y_continuous(labels = percent_format(), limits = c(0, 1), expand = expansion(mult = c(0, 0.05))) +
+  scale_x_continuous(breaks = sample_sizes) +
+  
+  scale_color_manual(values = c(
+    "Anderson-Darling" = "red3",
+    "Jarque-Bera" = "darkblue",
+    "Shapiro-Wilk" = "palegreen3"
+  )) +
+  scale_shape_manual(values = c(16, 17, 15)) +
+  
+  theme_minimal(base_size = 14) +
+  theme(
+    legend.position = "bottom",
+    legend.title = element_text(face = "bold"),
+    plot.title = element_text(face = "bold", size = 16, hjust = 0.5),
+    plot.subtitle = element_text(size = 12, hjust = 0.5, color = "gray40"),
+    strip.background = element_blank(),          
+    strip.text = element_text(face = "bold", size = 12),
+    panel.border = element_blank(),              
+    panel.grid.major = element_line(color = "gray85", linewidth = 0.4),  
+    panel.grid.minor = element_line(color = "gray90", linewidth = 0.2),  
+    panel.spacing = unit(1, "lines"),
+    plot.margin = margin(10, 10, 10, 10)
+  )
+
+print(grafico_poder)
+
+```
+

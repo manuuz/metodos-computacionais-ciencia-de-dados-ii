@@ -1,6 +1,6 @@
 ---
 title: "Trabalho1-MCCDII"
-author: "Emanuelle Oliveira, Mariana Fleming, Maria Luiza Oliveira"
+author: "Emanuelle Oliveira"
 date: "2025-10-02"
 output: html_document
 ---
@@ -49,9 +49,9 @@ amostra <- chi_rejection(10000)
 # Histograma no mesmo estilo visual
 hist(amostra, 
      prob = TRUE, 
-     breaks = 100,
+     breaks = "FD",
      main = "Amostra Gerada vs. Densidade Teórica",
-     xlab = "Valores da Amostra (Qui-Quadrado)",
+     xlab = "Valores da Amostra",
      ylab = "Densidade",
      col = "lightblue",
      border = "gray40",
@@ -135,99 +135,84 @@ mtext("Método da Transformada Inversa - Pareto(a = 2, b = 1)",
 ```
 
 
-## SIR Slash
-```{r sir_slash}
-slash_sir_t <- function(n, n_cand = n * 20, df_proposta = 2){
+## SIR Cauchy
+```{r sir_cauchy}
+
+cauchy_sir_t <- function(n, n_cand = n * 20, df_proposta = 0.5){
   
   # 1. Gerar candidatos da proposta t de Student
   x_cand <- rt(n_cand, df = df_proposta)
   
-  # 2. Calcular a densidade alvo (f) numericamente
-  f <- sapply(x_cand, function(y) 
-    integrate(function(u) dnorm(u * y) * u, lower = 0, upper = 1)$value)
-  
+  # 2. Calcular a densidade alvo (Cauchy) numericamente via integral
+  f <- sapply(x_cand, function(y)
+    integrate(function(u) dnorm(u * y) * dnorm(u) * u,
+              lower = 0, upper = Inf)$value
+  )
   # 3. Calcular a densidade da proposta t de Student (g)
   g <- dt(x_cand, df = df_proposta)
   
   # 4. Calcular e normalizar os pesos
-  w <- f / (g + 1e-10) 
+  w <- f / (g + 1e-10)
   w_norm <- w / sum(w)
   
-  # 5. Reamostrar com base nos pesos 
+  # 5. Reamostrar com base nos pesos
   indices <- sample(seq_len(n_cand), size = n, replace = TRUE, prob = w_norm)
   x_sir <- x_cand[indices]
   
   return(x_sir)
 }
+
 ```
 
-```{r graphic_slash}
+```{r graphic_cauchy}
 
 # Gráfico para verificação
 
-dslash <- function(y){
-  ifelse(y == 0, 
-         1 / (2 * sqrt(2 * pi)), 
-         (1 - exp(-y^2 / 2)) / (y^2 * sqrt(2 * pi)))
-}
-
-slash_sir_t <- function(n, n_cand = n * 20, df_proposta = 1){
-  x_cand <- rt(n_cand, df = df_proposta)
-  
-  f <- sapply(x_cand, function(y)  
-    integrate(function(u) dnorm(u * y) * u, lower = 0, upper = 1)$value)
-  
-  g <- dt(x_cand, df = df_proposta)
-  
-  w <- f / (g + 1e-10)  
-  w_norm <- w / sum(w)
-  
-  indices <- sample(seq_len(n_cand), size = n, replace = TRUE, prob = w_norm)
-  x_sir <- x_cand[indices]
-  
-  return(x_sir)
-}
-
-# set.seed(63)
+set.seed(63)
 n_amostra <- 5000
 
-amostra_gerada <- slash_sir_t(n = n_amostra, n_cand = 100000, df_proposta = 4)
+amostra_gerada <- cauchy_sir_t(n = n_amostra, n_cand = 100000, df_proposta = 0.5)
 
+# Dados do histograma para definir limites
 dados_hist <- hist(amostra_gerada, breaks = 100, plot = FALSE)
 altura_maxima <- max(dados_hist$density)
 
+# --- Histograma com densidade teórica da Cauchy ---
+
 hist(amostra_gerada, 
      prob = TRUE,
-     breaks = 100,
-     main = "Amostra Gerada vs. Densidade Teórica",
-     xlab = "Valores da Amostra (Slash)",
+     breaks = "FD",
+     main = "Amostra Gerada vs. Densidade Teórica (Cauchy)",
+     xlab = "Valores da Amostra",
      ylab = "Densidade",
      col = "lightblue",
      border = "gray40",
-     xlim = c(-10, 10),
-     ylim = c(0, altura_maxima * 1.2))
+     xlim = c(-15, 15),          
+     ylim = c(0, 0.37))         
 
+grid()
 
-mtext("Método SIR com proposta t-Student com 5 g.l.", side = 1, line = 4, cex = 0.9, font = 3)
+# --- Densidade teórica ---
+grid_vals <- seq(-15, 15, length.out = 1000)
+lines(grid_vals, dcauchy(grid_vals), col = "red", lwd = 2)
 
-grid <- seq(-10, 10, length.out = 500)
-densidade_teorica <- dslash(grid)
-lines(grid, densidade_teorica, 
-      col = "red",
-      lwd = 2)
-
-legend("topright", 
-       legend = c("Histograma da Amostra", "Densidade Teórica (dslash)"),
+# --- Legenda em posição mais adequada ---
+legend("right",
+       legend = c("Histograma da Amostra", "Densidade Teórica (Cauchy)"),
        pch = c(22, NA),
        pt.bg = c("lightblue", NA),
-       pt.cex = 1.6,
+       pt.cex = 1.5,
        col = c("gray40", "red"),
        lty = c(NA, 1),
        lwd = c(NA, 2),
-       inset = c(0.02, 0.02),
+       inset = c(0, -0.05),       
+       xpd = TRUE,                
        bty = "n",
        cex = 0.9)
 
+# --- Subtítulo descritivo ---
+mtext("Método SIR com proposta t-Student (df = 1/2)", 
+      side = 1, line = 4, cex = 0.9, font = 3)
 
 ```
 
@@ -329,7 +314,7 @@ tabela_erro_tipo1_vs_n
 geradoras_list <- list(
   "Qui-Quadrado (df=2)" = function(n) chi_rejection(n),
   "Pareto (a=2, b=1)"   = function(n) pareto_icdf(n, a = 2, b = 1),
-  "Slash"               = function(n) slash_sir_t(n = n) 
+  "Cauchy"               = function(n) cauchy_sir_t(n = n) 
 )
 
 results_list <- list()
@@ -427,7 +412,6 @@ tabela_poder <- table_data %>%
     source_notes.font.size = 12
   )
 
-tabela_poder
 ```
 
 ```{r}
@@ -457,9 +441,9 @@ grafico_poder <- ggplot(results_long,
   scale_x_continuous(breaks = sample_sizes) +
   
   scale_color_manual(values = c(
-    "Anderson-Darling" = "red3",
-    "Jarque-Bera" = "darkblue",
-    "Shapiro-Wilk" = "palegreen3"
+    "Anderson-Darling" = "firebrick",
+    "Jarque-Bera" = "royalblue",
+    "Shapiro-Wilk" = "springgreen3"
   )) +
   scale_shape_manual(values = c(16, 17, 15)) +
   

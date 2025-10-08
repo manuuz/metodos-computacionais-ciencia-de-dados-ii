@@ -411,7 +411,7 @@ tabela_poder <- table_data %>%
     table_body.border.bottom.color = "black",
     source_notes.font.size = 12
   )
-
+tabela_poder
 ```
 
 ```{r}

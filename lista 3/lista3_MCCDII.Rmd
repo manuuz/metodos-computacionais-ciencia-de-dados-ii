@@ -1,0 +1,104 @@
+---
+title: "Lista 3 Métodos Computacionais para Ciência de Dados II"
+author: "Emanuelle Oliveira, Maria Luiza Oliveira, Mariana Fleming"
+execute: 
+  echo: true
+  warning: false
+  message: false
+output:
+  pdf_document:
+    keep_tex: true
+  html_document: default
+---
+
+# Questão 1
+
+Considere $\theta=\int_{0}^{1}e^{x}dx$. Use uma simulação de Monte Carlo para estimar pelo método da variável antitética e também pelo método de Monte Carlo simples. Calcule uma estimativa empírica da redução percentual na variância ao usar a variável antitética.
+
+## Solução
+
+```{r}
+
+```
+
+# Questão 2
+
+Suponha que Y seja uma variável aleatória normal com média 1 e variância 1, e que, condicionalmente a $Y=y$, a variável X seja normal com média y e variância 4. Deseja-se usar simulação para estimar eficientemente $\theta=P\{X>1\}$.
+
+**a) Explique como obter o estimador de simulação de Monte Carlo simples.**
+
+## Solução
+
+**b) Mostre como a esperança condicional pode ser usada para obter um estimador aprimorado.**
+
+## Solução
+
+```{r}
+
+```
+
+**c) Mostre como o estimador do item (b) pode ser ainda mais aprimorado utilizando Y como variável de controle.**
+
+## Solução
+
+```{r}
+
+```
+
+**d) Implemente os três métodos acima e mostre a variabilidade dos estimadores replicando o uso de cada algoritmo 200 vezes.**
+
+## Solução
+
+```{r}
+
+```
+
+# Questão 3
+
+Obtenha uma estimativa de Monte Carlo para $\int_{1}^{\infty}\frac{x^{2}}{\sqrt{2\pi}}e^{-x^{2}/2}dx$ utilizando o método de amostragem por importância (importance sampling).
+
+## Solução
+
+```{r}
+
+```
+
+# Questão 4
+
+Utilize o algoritmo de Newton-Raphson para estimar os parâmetros de um modelo de regressão Poisson em que $y_{i}\sim Poisson(\lambda=exp\{\beta_{0}+\beta_{1}x_{i}\})$. Gere dados do modelo de regressão e avalie se o algoritmo fornece boas estimativas.
+
+## Solução
+
+```{r}
+
+```
+
+# Questão 5
+
+Implemente um estudo Monte Carlo com $M=100$ réplicas para avaliar o algoritmo EM implementado nos slides para o modelo Poisson inflado de zeros e avalie as estimativas nos 4 cenários apresentados nos slides.
+
+## Solução
+
+```{r}
+
+```
+
+# Questão 6
+
+Implemente o algoritmo EM para mistura de duas distribuições Normais apresentado nos slides e avalie a estimação em 4 cenários alterando tamanho amostral e valores do parâmetros.
+
+## Solução
+
+```{r}
+
+```
+
+# Questão 7
+
+Implemente o algoritmo ECM para mistura de duas distribuições Gamas apresentado nos slides de variantes do algoritmo EM. Avalie as estimativas gerando dados de alguns cenários com mistura de duas gamas.
+
+## Solução
+
+```{r}
+
+```

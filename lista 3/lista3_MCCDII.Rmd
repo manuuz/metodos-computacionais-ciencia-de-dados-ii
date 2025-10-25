@@ -10,6 +10,10 @@ output:
     keep_tex: true
   html_document: default
 ---
+```{r message=FALSE, warning=FALSE, include=FALSE}
+library(kableExtra)
+```
+
 
 # Questão 1
 
@@ -59,9 +63,68 @@ Obtenha uma estimativa de Monte Carlo para $\int_{1}^{\infty}\frac{x^{2}}{\sqrt{
 
 ## Solução
 
-```{r}
+No \textit{Importance Sampling} podemos reescrever a integral alvo ($f(x)$) de uma forma que possamos amostrar de uma distribuição de probabilidade proposta ($g(x)$) da nossa escolha, para isso reescrevemos:
+
+$\int f(x)dx = \int g(x) \frac{f(x)}{g(x)}dx = \int g(x)w(x)dx$ onde $w(x)$ chamamos de peso.
+
+Utilizaremos dessa integral como valor esperado da função $w(x) = \frac{f(x)}{g(x)}$ quando amostrarmos $X$ da proposta $g(x)$:
+
+$I = E_g[w(x)]$
+
+Logo, nosso Monte Carlo para $I$ com $N$ amostras será a média:
+
+$Î = \frac{1}{N}\sum_{i=1}^{N} w(x)$
+
+Temos como alvo $f(x) = \int_{1}^{\infty}\frac{x^{2}}{\sqrt{2\pi}}e^{-x^{2}/2}dx$, que pode ser interpretada como $f(x) = x^2 \cdot \phi(x)$, onde $\phi(x) = \frac{1}{\sqrt{2\pi}}e^{-x^{2}/2}$ é a densidade da Normal Padrão.
+Como proposta escolhemos a Normal Truncada no intervalo da integral alvo, $[1, \infty)$, $g(x)=\frac{\phi(x)}{1-\Phi(1)}$, onde o denominador iremos chamar de constante normalizadora $C=1-\Phi(1)$.
+
+Reconstruindo nossa função de peso $w(x)$ teremos:
+
+$w(x) = \frac{f(x)}{g(x)} = \frac{x^2 \cdot \phi(x)}{\frac{\phi(x)}{C}} = C \cdot x^2$
+
+Então teremos nosso estimador de Monte Carlo:
+
+$Î = \frac{1}{N}\sum_{i=1}^{N}C\cdot x_i^2$
+
+Amostra proposta $g(x)$:
+```{r amostra-proposta-sir}
+dnormtrunc <- function(x, mu=0, sigma=1, a, b){
+  d <- dnorm(x, mu, sigma)/( pnorm(b, mu, sigma) - pnorm(a, mu, sigma) )
+}
+
+rnormtrunc <- function(n, mu=0, sigma=1, a, b){
+  us <- runif(n)
+  amostra <- qnorm( pnorm(a, mu, sigma) + 
+                      ( pnorm(b, mu, sigma) - pnorm(a, mu, sigma) )*us, mu, sigma )
+}
+
+a=1
+b=1000000 #Aproximacao de um numero muito grande como "infinito"
+amostra_proposta <- rnormtrunc(100000, a=a, b=b)
+
+par(mar = c(4, 4, 1, 1))
+hist(amostra_proposta, xlab = expression(x), ylab = "Densidade", prob = T, main = "")
+grid <- seq(a, b, by = 0.01)
+lines(grid, dnormtrunc(grid, a=a, b=b), col = "red", lwd = 2 )
 
 ```
+
+Simulação de Monte Carlo:
+```{r monte-carlo-sir}
+N <- 100000
+C <- 1 - pnorm(1)
+amostras_x <- rnormtrunc(n = N, mu = 0, sigma = 1, a = 1, b = Inf)
+
+estimativa_I <- mean(C * amostras_x^2)
+valor_exato <- dnorm(1)
+
+tabela <- data.frame(
+  Método = c("Estimativa de Monte Carlo", "Valor Analitico"),
+  Valor = c(estimativa_I, valor_exato)
+)
+
+kable(tabela, caption = "Metodo para Integral")
+``` 
 
 # Questão 4
 

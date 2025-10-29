@@ -14,6 +14,7 @@ output:
 library(knitr)
 library(kableExtra)
 library(ggplot2)
+library(stats)
 ```
 
 
@@ -558,6 +559,26 @@ avaliar_cenario(
 Implemente o algoritmo ECM para mistura de duas distribuições Gamas apresentado nos slides de variantes do algoritmo EM. Avalie as estimativas gerando dados de alguns cenários com mistura de duas gamas.
 
 ## Solução
+
+### Passo a passo
+
+1. Calcule a densidade gama com a função `dgamma_mix`.
+
+2. Crie a função `solve_alpha`: defina uma função para resolver numericamente `digamma(alpha) = C_k`, primeiro usando `uniroot(fun, interval = c(1e-8, 1e6))` e se `uniroot` falhar, usando o método de Newton iterativo com `trigamma` para ajustar `alpha` até convergir (e retornando um valor positivo de `alpha` que satisfaça a equação).
+
+3. Receba `X` (vetor de observações) e `initial_params` (vetor com delta, alpha1, alpha2, beta1, beta2). Inicialize o vetor `theta` com os parâmetros e crie uma matriz `history` para armazenar a trajetória e faça um loop de até um número máximo de iterações.
+
+4. Passo E: Calcule `f1 = dgamma_mix(X, alpha1, beta1)` e `f2 = dgamma_mix(X, alpha2, beta2)`. Calcule a probabilidade posterior `p_i = delta * f1 / (delta * f1 + (1-delta) * f2)`, limite `p_i` em [0,1] e evite divisões por zero. Calcule somas ponderadas: `sum_p = sum(p_i)`, `sum_x_p = sum(X * p_i)` e equivalentes para o componente 2.
+
+5. Passo CM: Atualize `delta_new = sum_p / n`; `beta1_new = alpha1 * sum_p / sum_x_p` (se `sum_p > 0`, caso contrário mantenha `beta1`); e `beta2_new` de forma equivalente. Calcule `C1 = (sum(p_i * log(X)) / sum_p) + log(beta1_new)` e `C2` de forma equivalente para o segundo componente e use `solve_alpha(C1, alpha1)` e `solve_alpha(C2, alpha2)` para obter `alpha1_new` e `alpha2_new`.
+
+6. Verifique a convergência, observando se o critério de parada é menor ou maior que a tolerância.
+
+7. Atualize `theta` e registre no `history`.
+
+8. Na função `rgamma_mixture`, gere indicadores `Z` com `rbinom(n, 1, delta)`. Para cada elemento de `Z`, gere uma observação de Gama correspondente, e retorne o vetor `X`.
+
+### Impletação do código
 
 ```{r}
 

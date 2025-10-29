@@ -23,9 +23,56 @@ Considere $\theta=\int_{0}^{1}e^{x}dx$. Use uma simulação de Monte Carlo para 
 
 ## Solução
 
-```{r}
+### Passo a passo
 
+1. Defina a função integrando $g(x) = e^x$, cuja integral em $[0,1]$ é $e - 1$.
+
+2. Simule $U_i \sim \text{Uniforme}(0,1)$. Esses números aleatórios serão usados para aproximar a esperança de $g(U)$.
+
+3. Primeiro, no método de Monte Carlo simples, calcule $X_i = e^{U_i}$. A média de $X_i$ é uma estimativa de $\theta$ e a variância do estimador é $\text{Var}_{X_i}/k$.
+
+4. Já no método da variável antitética, use os pares $(U_i, 1-U_i)$ (negativamente correlacionados) e calcule a média $Y_i = \frac{e^{U_i} + e^{1-U_i}}{2}$. A média de $Y_i$ é uma estimativa alternativa com menor variância.
+
+5. Calcule o erro padrão para comparar os dois métodos e demais métricas que julgar relevante (aqui usamos a redução percentual da variância através da fórmula $\text{Redução} = \frac{\text{Var}_{MC} - \text{Var}_{ANT}}{\text{Var}_{MC}} \times 100$).
+
+### Implementação do código
+
+```{r}
+# parâmetros
+set.seed(123456789)
+k <- 100000
+g <- function(x) exp(x)
+
+# Monte Carlo simples
+U_mc <- runif(k)
+X_mc <- g(U_mc)
+tc_mc <- mean(X_mc) # tc = theta chapéu
+var_tc_mc <- var(X_mc) / k
+ep_tc_mc <- sqrt(var_tc_mc)
+
+# variável antitética
+U_ant <- 1 - U_mc
+Y_ant <- (g(U_mc) + g(U_ant)) / 2
+tc_ant <- mean(Y_ant)
+var_tc_ant <- var(Y_ant) / k
+ep_tc_ant <- sqrt(var_tc_ant)
+
+reducao <- ((var_tc_mc - var_tc_ant) / var_tc_mc) * 100 # em percentual
+valor_exato <- exp(1) - 1
+
+resultado <- data.frame(
+  Método = c("Monte Carlo", "Antitética"),
+  Estimativa = c(tc_mc, tc_ant),
+  Variância = c(var_tc_mc, var_tc_ant),
+  ErroPadrão = c(ep_tc_mc, ep_tc_ant)
+)
+
+kable(resultado)
+cat("\nValor exato:", round(valor_exato, 7),
+    "\nRedução percentual na variância:", round(reducao, 4), "%\n")
 ```
+
+Portanto, percebemos que a técnica da variável antitética melhora a eficiência da estimativa, uma vez que reduz a variância.
 
 # Questão 2
 

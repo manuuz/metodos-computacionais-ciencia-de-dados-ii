@@ -188,8 +188,125 @@ Utilize o algoritmo de Newton-Raphson para estimar os parâmetros de um modelo d
 
 ## Solução
 
-```{r}
+Para estimar os parâmetros $\beta_0$ e $\beta_1$ de uma regressão Poisson, precisamos encontrar os valores que maximizam a função de log-verossimilhança $(l(\beta))$. Nesse caso procuramos o ponto onde a primeira derivada de $f(x)$ é igual a zero.
 
+Como o problema é multidimensional (temos dois $\beta$s), nossas ferramentas são:
+
+-   A 1º derivada $g'(x)$: Vetor Score $U(\beta)$ com as derivadas parciais de $l(\beta)$ em relação a cada $\beta$. Nosso objetivo é encontrar o $\beta$ que faz $U(\beta) = 0$.
+
+-   A 2º derivada $g''(x)$: Matriz Hessiana $H(\beta)$. É uma matriz 2x2 com todas as segundas derivadas. 
+
+Usando a fórmula de atualização de Newton-Raphson $$\beta^{(t+1)} = \beta^{(t)} - [H(\beta^{(t)}]^{-1}U(\beta^{(t)})$$. Onde $[H^{-1}]$ é a matriz inversa hessiana.
+
+Para implementar, definimos os componentes do nosso GLM Poisson. O preditor linear é $\eta = X\beta$. A média da Poisson, $\lambda$, é ligada ao preditor pela função de ligação log, $\log(\lambda) = \eta$.
+
+Invertendo a ligação, temos $\lambda = \exp(\eta)$. Esta média $\lambda$ é usada tanto no Vetor Score ($U$) quanto na Matriz Hessiana ($H$). A Hessiana é calculada como $H = -X^T W X$, onde $W$ é uma matriz diagonal de pesos com $W_{ii} = \lambda_i$.
+
+**Algoritmo**
+
+1)  Definir um chute inicial $\beta^{(0)}$
+
+2)  Loop de Iterações:
+
+\- calcular $\eta^{(t)} = X\beta^{(t)}$ e $\lambda^{(t)} = exp(\eta^{(t)})$
+
+\- calcular o **vetor score** $U^{(t)} = X^T(y - \lambda^{(t)})$
+
+\- calcular a **matriz hessiana**:$H^{(t)} = -\mathbf{X}^T \mathbf{W}^{(t)} \mathbf{X}$
+
+\- calcular o passo: $\Delta = [H^{(t)}]^{-1} U^{(t)}$
+
+\- atualizar o chute: $\beta^{(t+1)} = \beta^{(t)} - \Delta$
+
+\- Se a soma das mudanças for menor que a tolerância, paramos o loop.
+
+```{r}
+set.seed(42)
+
+n <- 1000 # tamanho da amostra
+beta_real <- c(1.5, -0.8) # parâmetros verdadeiros
+
+x <- runif(n, min = -3, max = 3) 
+X <- cbind(rep(1, n), x) # Matriz de segundas derivadas
+
+# Calcular o preditor linear e a média 
+eta_real <- X %*% beta_real   # eta = beta_0*1 + beta_1*x_i
+lambda_real <- exp(eta_real)  # lambda = exp(eta)
+
+# Gerar os dados da distribuição Poisson
+y <- rpois(n, lambda = lambda_real)
+
+# Chute inicial para os parâmetros
+beta_estimado <- c(0, 0)
+
+tolerancia <- 1e-8      # Critério de parada
+max_iteracoes <- 100  # Limite de segurança
+
+
+for (i in 1:max_iteracoes) {
+  
+  # Calcular eta e lambda com o beta ATUAL
+  eta_atual <- X %*% beta_estimado
+  lambda_atual <- exp(eta_atual)
+  
+  # Calcular o Vetor Score (U)
+  score <- t(X) %*% (y - lambda_atual)
+  
+  # 4c. Calcular a Matriz Hessiana (H)
+  W <- diag(as.vector(lambda_atual)) # matriz diagonal de pesos (lambdas)
+  hessiana <- -t(X) %*% W %*% X
+  
+  # Calcular o passo de Newton = H^(-1) * U
+ 
+  passo <- solve(hessiana, score)  # usamos solve(A, b) para calcular A^(-1) * b
+  
+  # Atualizar os parâmetros: beta_novo = beta_antigo - passo
+  beta_novo <- beta_estimado - passo
+  
+  # Checar a convergência. Se a mudança for muito pequena, paramos o loop
+  mudanca <- sum(abs(passo))
+  if (mudanca < tolerancia) {
+    print(paste("Convergência alcançada na iteração:", i))
+    beta_estimado <- beta_novo
+    break
+  }
+  
+  # Se não convergiu, atualiza o chute para a próxima rodada
+  beta_estimado <- beta_novo
+  
+}
+
+
+print("Parâmetros Reais:")
+beta_real
+
+print("Parâmetros Estimados (Newton-Raphson):")
+as.vector(beta_estimado)
+
+```
+
+### Gráfico para comparação
+
+```{r}
+plot(x, y, main = "Regressão Poisson com Newton-Raphson",
+     xlab = "Variável X", ylab = "Contagem Y",
+     pch = 20, col = "gray",
+     ylim = c(0, max(y[x < 0]))) 
+
+# curva real
+curve(exp(beta_real[1] + beta_real[2] * x),
+      col = "blue", lty = 2, lwd = 3, add = TRUE)
+
+# curva estimada
+curve(exp(beta_estimado[1] + beta_estimado[2] * x),
+      col = "red", lty = 1, lwd = 3, add = TRUE)
+
+legend("topright",
+       legend = c("Dados Gerados", "Curva Real", "Curva Estimada"),
+       col = c("gray", "blue", "red"),
+       lty = c(NA, 2, 1),
+       pch = c(20, NA, NA),
+       lwd = c(NA, 3, 3))
 ```
 
 # Questão 5

@@ -79,33 +79,127 @@ Portanto, percebemos que a técnica da variável antitética melhora a eficiênc
 
 Suponha que Y seja uma variável aleatória normal com média 1 e variância 1, e que, condicionalmente a $Y=y$, a variável X seja normal com média y e variância 4. Deseja-se usar simulação para estimar eficientemente $\theta=P\{X>1\}$.
 
-**a) Explique como obter o estimador de simulação de Monte Carlo simples.**
+## **a) Explique como obter o estimador de simulação de Monte Carlo simples.**
 
-## Solução
+### Solução
 
-**b) Mostre como a esperança condicional pode ser usada para obter um estimador aprimorado.**
+Pela lei da probabilidade total, a marginal de $X$ é $N(1,5)$, e portanto o valor exato é $\theta = P(X > 1) = 0.5$.O método de Monte Carlo simples simula diretamente pares $(Y, X)$ e calcula a proporção de vezes em que $X > 1$.
 
-## Solução
+O estimador é simples: $\hat\theta_{MC} = \frac{1}{K}\sum_{i=1}^K I(X_i > 1)$, onde $I(\cdot)$ é a função indicadora. Esse método é fácil, mas apresenta alta variância porque depende da dupla simulação de $Y$ e do erro $\varepsilon$.
 
-```{r}
+```{r ex2a}
+# parâmetros
+K <- 10000 # amostras por replicação
+M <- 200  # número de replicações
+mu_Y <- 1
+sigma2_Y <- 1
+sigma2_XdadoY <- 4
+theta_exato <- 0.5
 
+estimativas_mc <- numeric(M)
+
+set.seed(123456789)
+
+for (m in 1:M) {
+  Y <- rnorm(K, mean = mu_Y, sd = sqrt(sigma2_Y))
+  epsilon <- rnorm(K, mean = 0, sd = sqrt(sigma2_XdadoY))
+  
+  # X condicional a Y
+  X <- Y + epsilon
+  
+  estimativas_mc[m] <- mean(X > 1)
+}
 ```
 
-**c) Mostre como o estimador do item (b) pode ser ainda mais aprimorado utilizando Y como variável de controle.**
+## **b) Mostre como a esperança condicional pode ser usada para obter um estimador aprimorado.**
 
-## Solução
+### Solução
 
-```{r}
+Podemos reduzir a variância substituindo a indicadora $I(X>1)$ por sua esperança condicional dado $Y$:
 
+$$
+g(Y) = E[I(X > 1) \mid Y] = P(X > 1 \mid Y) = 1 - \Phi!\left(\frac{1 - Y}{2}\right) = \Phi!\left(\frac{Y - 1}{2}\right)
+$$
+Assim, o novo estimador é $\hat\theta_{EC} = \frac{1}{K} \sum_{i=1}^K g(Y_i)$. Faz sentido utilizar esse novo estimador uma vez que esse método elimina a variabilidade extra introduzida pela simulação de $X$, e como consequência, a variância de $\hat\theta_{EC}$ é sempre menor ou igual à de $\hat\theta_{MC}$ pelo teorema de Rao-Blackwell.
+
+```{r ex2b}
+estimativas_ec <- numeric(M)
+
+for (m in 1:M) {
+  Y <- rnorm(K, mean = mu_Y, sd = sqrt(sigma2_Y))
+  
+  #condicional g(Y) = P(X>1|Y)
+  g_Y <- pnorm((Y - 1) / 2)
+  
+  estimativas_ec[m] <- mean(g_Y)
+}
 ```
 
-**d) Implemente os três métodos acima e mostre a variabilidade dos estimadores replicando o uso de cada algoritmo 200 vezes.**
+## **c) Mostre como o estimador do item (b) pode ser ainda mais aprimorado utilizando Y como variável de controle.**
 
-## Solução
+### Solução
 
-```{r}
+Utilizando uma variável de controle, o objetivo é reduzir ainda mais a variância usando uma variável correlacionada conhecida. Nesse caso, como $Y$ tem média conhecida ($E[Y]=1$), podemos usá-la como controle:
 
+$$
+\hat\theta_{VC} = \hat\theta_{EC} - c ( \bar Y - E[Y]),
+$$
+
+onde o coeficiente ótimo é $c^\ast = \frac{\text{Cov}(g(Y), Y)}{\text{Var}(Y)}$.
+
+A variável de controle remove parte da variabilidade residual ainda presente em $g(Y)$: se $Y$ estiver fortemente correlacionado com $g(Y)$, a redução de variância pode ser expressiva.
+
+```{r ex2c}
+estimativas_vc <- numeric(M)
+
+for (m in 1:M) {
+  Y <- rnorm(K, mean = mu_Y, sd = sqrt(sigma2_Y))
+  
+  # condicional e coeficiente ótimo
+  g_Y <- pnorm((Y - 1) / 2)
+  c_chapeu <- cov(g_Y, Y) / var(Y)
+  
+  Y_barra <- mean(Y)
+  estimativas_vc[m] <- mean(g_Y) - c_chapeu * (Y_barra - mu_Y)
+}
 ```
+
+## **d) Implemente os três métodos acima e mostre a variabilidade dos estimadores replicando o uso de cada algoritmo 200 vezes.**
+
+### Solução
+
+Podemos comparar empiricamente, através das simulações, a variabilidade, a média estimada (viés) e a redução percentual de variância entre os métodos.
+
+```{r ex2d}
+ep_mc <- sd(estimativas_mc)
+ep_ec <- sd(estimativas_ec)
+ep_vc <- sd(estimativas_vc)
+
+media_mc <- mean(estimativas_mc)
+media_ec <- mean(estimativas_ec)
+media_vc <- mean(estimativas_vc)
+
+# redução de variância (em comparação com o método simples)
+reducao_ec <- (ep_mc^2 - ep_ec^2) / ep_mc^2 * 100
+reducao_vc <- (ep_mc^2 - ep_vc^2) / ep_mc^2 * 100
+
+resultados <- data.frame(
+  `Método` = c("MC Simples", "Esperança Condicional", "EC + Variável de Controle"),
+  `Média Estimada` = c(media_mc, media_ec, media_vc),
+  `Erro Padrão Estimado` = c(ep_mc, ep_ec, ep_vc),
+  `Redução de Variância` = c(0.0, reducao_ec, reducao_vc)
+)
+kable(resultados)
+
+boxplot(estimativas_mc, estimativas_ec, estimativas_vc,
+        names = c("MC Simples", "E. Condicional", "EC + VC"),
+        main = "Variabilidade dos Estimadores (M=200)",
+        ylab = "Estimativas de theta",
+        col = c("lightblue", "lightgreen", "salmon"))
+abline(h = theta_exato, col = "red", lty = 2, lwd = 2)
+```
+
+Logo, concluímos que o estimador de Monte Carlo simples é correto, mas ineficiente. A esperança condicional (de acordo com o teorema de Rao-Blackwell) melhora a eficiência sem introduzir viés e a adição da variável de controle $Y$ produz ganhos adicionais, embora menores, refinando o estimador.
 
 # Questão 3
 
@@ -674,8 +768,6 @@ avaliar_cenario(
 # Questão 7
 
 Implemente o algoritmo ECM para mistura de duas distribuições Gamas apresentado nos slides de variantes do algoritmo EM. Avalie as estimativas gerando dados de alguns cenários com mistura de duas gamas.
-
-## Solução
 
 ## Solução
 

@@ -314,7 +314,7 @@ Invertendo a ligação, temos $\lambda = \exp(\eta)$. Esta média $\lambda$ é u
 
 \- Se a soma das mudanças for menor que a tolerância, paramos o loop.
 
-```{r}
+```{r Q4}
 set.seed(42)
 
 n <- 1000 # tamanho da amostra
@@ -409,9 +409,144 @@ Implemente um estudo Monte Carlo com $M=100$ réplicas para avaliar o algoritmo 
 
 ## Solução
 
-```{r}
+### Algoritmo EM dos slides:
+
+```{r Q5_1}
+set.seed(156)
+
+# Gerando dados com excesso de zero 
+rPoisson_zero <- function(n, lambda, p){
+  s <- rbinom(n, 1, p) # valor 1 indica um zero em excesso
+  x <- rpois(n, lambda) * (s == 0) 
+}
+
+## Algoritmo EM - Poisson zero inflacionado
+EM_Poisson_zinf <- function(x, M){
+  # 1. Inicialize p^(0) e lambda^(0)
+  lambda <- 5
+  p <- 0.05
+  
+  lambda_vec <- lambda
+  p_vec <- p
+  
+  # 2. Faça t=0;
+  t <- 0
+  
+  # 3. Repita os passos abaixo até atingir a convergência:
+  
+  while(t < M){
+    
+    ##  Calcule gamma_{i1}(t) e gamma_{i0}(t)
+    aux1 <- p * (x == 0)*1 # vetor de tamanho n
+    aux2 <- (1-p) * dpois(x, lambda) # vetor de tamanho n
+    gamma1 <- aux1 / (aux1 + aux2) # vetor de tamanho n relativo a excessos de zero
+    gamma0 <- 1 - gamma1
+    
+    ##  Obtenha p^(t+1) e lambda^(t+1) com os estimadores obtidos no passo de maximização; 
+    n <- length(x)
+    p <- sum(gamma1)/n
+    lambda <- sum(x*gamma0)/sum(gamma0)
+    
+    p_vec <- c(p_vec, p)
+    lambda_vec <- c(lambda_vec, lambda)
+    
+    ## Faça t = t+1
+    t <- t + 1
+  }
+  
+  return(list(p = p_vec, lambda = lambda_vec))
+}
+```
+
+### Estudo Monte Carlo
+
+```{r Q5_2}
+set.seed(123)
+
+# Parâmetros fixos
+lambda_real <- 3
+p_valores <- c(0, 0.05, 0.10, 0.20)
+n <- 500          # tamanho amostral
+M_iter <- 100     # iterações do EM
+R <- 100          # número de réplicas Monte Carlo
+
+# Armazenar resultados
+resultados <- data.frame(
+  p_verdadeiro = rep(p_valores, each = R),
+  p_estimado = NA,
+  lambda_estimado = NA
+)
+
+# Loop sobre os cenários
+i <- 1
+for(p_verdadeiro in p_valores){
+  
+  for(r in 1:R){
+    # Gerar dados
+    x <- rPoisson_zero(n, lambda_real, p_verdadeiro)
+    
+    # Rodar EM
+    ajuste <- EM_Poisson_zinf(x, M_iter)
+    
+    # Guardar estimativas finais (último valor)
+    resultados$p_estimado[i] <- tail(ajuste$p, 1)
+    resultados$lambda_estimado[i] <- tail(ajuste$lambda, 1)
+    
+    i <- i + 1
+  }
+}
 
 ```
+
+### Resumo
+
+```{r Q5_3, echo=FALSE}
+# Médias e desvios-padrão por cenário
+resumo <- aggregate(
+  cbind(p_estimado, lambda_estimado) ~ p_verdadeiro,
+  data = resultados,
+  FUN = function(x) c(media = mean(x), desvio = sd(x))
+)
+
+resumo_formatado <- data.frame(
+  p_verdadeiro = resumo$p_verdadeiro,
+  media_p = round(resumo$p_estimado[, "media"], 3),
+  desvio_p = round(resumo$p_estimado[, "desvio"], 3),
+  media_lambda = round(resumo$lambda_estimado[, "media"], 3),
+  desvio_lambda = round(resumo$lambda_estimado[, "desvio"], 3)
+)
+
+print(resumo_formatado)
+```
+### Visualização
+
+```{r Q5_4, echo = FALSE}
+library(ggplot2)
+
+# Boxplot das estimativas de p
+ggplot(resultados, aes(x = factor(p_verdadeiro), y = p_estimado)) +
+  geom_boxplot(fill = "#56B4E9", color = "black", alpha = 0.7) +
+  geom_hline(aes(yintercept = p_verdadeiro), color = "red", linetype = "dashed") +
+  labs(
+    title = "Distribuição das estimativas de p (100 réplicas)",
+    x = "p verdadeiro",
+    y = "p estimado"
+  ) +
+  theme_minimal(base_size = 13)
+
+# Boxplot das estimativas de lambda
+ggplot(resultados, aes(x = factor(p_verdadeiro), y = lambda_estimado)) +
+  geom_boxplot(fill = "#009E73", color = "black", alpha = 0.7) +
+  geom_hline(yintercept = lambda_real, color = "red", linetype = "dashed") +
+  labs(
+    title = "Distribuição das estimativas de λ (100 réplicas)",
+    x = "p verdadeiro",
+    y = "λ estimado"
+  ) +
+  theme_minimal(base_size = 13)
+```
+
+Os resultados mostram que o algoritmo EM recupera bem os parâmetros verdadeiros em todos os cenários considerados.
 
 # Questão 6
 

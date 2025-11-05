@@ -6,9 +6,9 @@ execute:
   warning: false
   message: false
 output:
-  html_document: default
   pdf_document:
     keep_tex: true
+  html_document: default
 ---
 ```{r message=FALSE, warning=FALSE, include=FALSE}
 library(knitr)
@@ -342,7 +342,7 @@ n <- 1000 # tamanho da amostra
 beta_real <- c(1.5, -0.8) # parâmetros verdadeiros
 
 x <- runif(n, min = -3, max = 3) 
-X <- cbind(rep(1, n), x) # Matriz de segundas derivadas
+X <- cbind(rep(1, n), x) # Matriz de desenho
 
 # Calcular o preditor linear e a média 
 eta_real <- X %*% beta_real   # eta = beta_0*1 + beta_1*x_i

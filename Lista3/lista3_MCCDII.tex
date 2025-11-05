@@ -1,0 +1,1606 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+\documentclass[
+]{article}
+\usepackage{xcolor}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\usepackage{longtable,booktabs,array}
+\usepackage{calc} % for calculating minipage widths
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+% Allow footnotes in longtable head/foot
+\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
+\makesavenoteenv{longtable}
+\usepackage{graphicx}
+\makeatletter
+\newsavebox\pandoc@box
+\newcommand*\pandocbounded[1]{% scales image to fit in text height/width
+  \sbox\pandoc@box{#1}%
+  \Gscale@div\@tempa{\textheight}{\dimexpr\ht\pandoc@box+\dp\pandoc@box\relax}%
+  \Gscale@div\@tempb{\linewidth}{\wd\pandoc@box}%
+  \ifdim\@tempb\p@<\@tempa\p@\let\@tempa\@tempb\fi% select the smaller of both
+  \ifdim\@tempa\p@<\p@\scalebox{\@tempa}{\usebox\pandoc@box}%
+  \else\usebox{\pandoc@box}%
+  \fi%
+}
+% Set default figure placement to htbp
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{wrapfig}
+\usepackage{float}
+\usepackage{colortbl}
+\usepackage{pdflscape}
+\usepackage{tabu}
+\usepackage{threeparttable}
+\usepackage{threeparttablex}
+\usepackage[normalem]{ulem}
+\usepackage{makecell}
+\usepackage{xcolor}
+\usepackage{bookmark}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+\hypersetup{
+  pdftitle={Lista 3 Métodos Computacionais para Ciência de Dados II},
+  pdfauthor={Emanuelle Oliveira, Maria Luiza Oliveira, Mariana Fleming},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+\title{Lista 3 Métodos Computacionais para Ciência de Dados II}
+\author{Emanuelle Oliveira, Maria Luiza Oliveira, Mariana Fleming}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section{Questão 1}\label{questuxe3o-1}
+
+Considere \(\theta=\int_{0}^{1}e^{x}dx\). Use uma simulação de Monte
+Carlo para estimar pelo método da variável antitética e também pelo
+método de Monte Carlo simples. Calcule uma estimativa empírica da
+redução percentual na variância ao usar a variável antitética.
+
+\subsection{Solução}\label{soluuxe7uxe3o}
+
+\subsubsection{Passo a passo}\label{passo-a-passo}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  Defina a função integrando \(g(x) = e^x\), cuja integral em \([0,1]\)
+  é \(e - 1\).
+\item
+  Simule \(U_i \sim \text{Uniforme}(0,1)\). Esses números aleatórios
+  serão usados para aproximar a esperança de \(g(U)\).
+\item
+  Primeiro, no método de Monte Carlo simples, calcule \(X_i = e^{U_i}\).
+  A média de \(X_i\) é uma estimativa de \(\theta\) e a variância do
+  estimador é \(\text{Var}_{X_i}/k\).
+\item
+  Já no método da variável antitética, use os pares \((U_i, 1-U_i)\)
+  (negativamente correlacionados) e calcule a média
+  \(Y_i = \frac{e^{U_i} + e^{1-U_i}}{2}\). A média de \(Y_i\) é uma
+  estimativa alternativa com menor variância.
+\item
+  Calcule o erro padrão para comparar os dois métodos e demais métricas
+  que julgar relevante (aqui usamos a redução percentual da variância
+  através da fórmula
+  \(\text{Redução} = \frac{\text{Var}_{MC} - \text{Var}_{ANT}}{\text{Var}_{MC}} \times 100\)).
+\end{enumerate}
+
+\subsubsection{Implementação do
+código}\label{implementauxe7uxe3o-do-cuxf3digo}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# parâmetros}
+\FunctionTok{set.seed}\NormalTok{(}\DecValTok{123456789}\NormalTok{)}
+\NormalTok{M }\OtherTok{\textless{}{-}} \DecValTok{200}
+\NormalTok{k }\OtherTok{\textless{}{-}} \DecValTok{100000}
+\NormalTok{g }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(x) }\FunctionTok{exp}\NormalTok{(x)}
+\NormalTok{valor\_exato }\OtherTok{\textless{}{-}} \FunctionTok{exp}\NormalTok{(}\DecValTok{1}\NormalTok{) }\SpecialCharTok{{-}} \DecValTok{1}
+
+\NormalTok{estimativas\_mc }\OtherTok{\textless{}{-}} \FunctionTok{numeric}\NormalTok{(M)}
+\NormalTok{estimativas\_ant }\OtherTok{\textless{}{-}} \FunctionTok{numeric}\NormalTok{(M)}
+
+
+\ControlFlowTok{for}\NormalTok{ (m }\ControlFlowTok{in} \DecValTok{1}\SpecialCharTok{:}\NormalTok{M) \{}
+  \CommentTok{\# Monte Carlo simples}
+\NormalTok{  U\_mc }\OtherTok{\textless{}{-}} \FunctionTok{runif}\NormalTok{(k)}
+\NormalTok{  X\_mc }\OtherTok{\textless{}{-}} \FunctionTok{g}\NormalTok{(U\_mc)}
+\NormalTok{  tc\_mc }\OtherTok{\textless{}{-}} \FunctionTok{mean}\NormalTok{(X\_mc) }\CommentTok{\# tc = theta chapéu}
+\NormalTok{  var\_tc\_mc }\OtherTok{\textless{}{-}} \FunctionTok{var}\NormalTok{(X\_mc) }\SpecialCharTok{/}\NormalTok{ k}
+\NormalTok{  ep\_tc\_mc }\OtherTok{\textless{}{-}} \FunctionTok{sqrt}\NormalTok{(var\_tc\_mc)}
+\NormalTok{  estimativas\_mc[m] }\OtherTok{\textless{}{-}} \FunctionTok{mean}\NormalTok{(X\_mc)}
+
+  \CommentTok{\# variável antitética}
+\NormalTok{  U\_ant }\OtherTok{\textless{}{-}} \DecValTok{1} \SpecialCharTok{{-}}\NormalTok{ U\_mc}
+\NormalTok{  Y\_ant }\OtherTok{\textless{}{-}}\NormalTok{ (}\FunctionTok{g}\NormalTok{(U\_mc) }\SpecialCharTok{+} \FunctionTok{g}\NormalTok{(U\_ant)) }\SpecialCharTok{/} \DecValTok{2}
+\NormalTok{  tc\_ant }\OtherTok{\textless{}{-}} \FunctionTok{mean}\NormalTok{(Y\_ant)}
+\NormalTok{  var\_tc\_ant }\OtherTok{\textless{}{-}} \FunctionTok{var}\NormalTok{(Y\_ant) }\SpecialCharTok{/}\NormalTok{ k}
+\NormalTok{  ep\_tc\_ant }\OtherTok{\textless{}{-}} \FunctionTok{sqrt}\NormalTok{(var\_tc\_ant)}
+\NormalTok{  estimativas\_ant[m] }\OtherTok{\textless{}{-}} \FunctionTok{mean}\NormalTok{(Y\_ant)}
+\NormalTok{\}}
+
+\NormalTok{reducao }\OtherTok{\textless{}{-}}\NormalTok{ ((var\_tc\_mc }\SpecialCharTok{{-}}\NormalTok{ var\_tc\_ant) }\SpecialCharTok{/}\NormalTok{ var\_tc\_mc) }\SpecialCharTok{*} \DecValTok{100} \CommentTok{\# em percentual}
+\NormalTok{valor\_exato }\OtherTok{\textless{}{-}} \FunctionTok{exp}\NormalTok{(}\DecValTok{1}\NormalTok{) }\SpecialCharTok{{-}} \DecValTok{1}
+
+\NormalTok{resultado }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}
+\NormalTok{  Método }\OtherTok{=} \FunctionTok{c}\NormalTok{(}\StringTok{"Monte Carlo"}\NormalTok{, }\StringTok{"Antitética"}\NormalTok{),}
+  \AttributeTok{Estimativa =} \FunctionTok{c}\NormalTok{(tc\_mc, tc\_ant),}
+\NormalTok{  Variância }\OtherTok{=} \FunctionTok{c}\NormalTok{(var\_tc\_mc, var\_tc\_ant),}
+\NormalTok{  ErroPadrão }\OtherTok{=} \FunctionTok{c}\NormalTok{(ep\_tc\_mc, ep\_tc\_ant)}
+\NormalTok{)}
+
+\FunctionTok{kable}\NormalTok{(resultado)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{longtable}[]{@{}lrrr@{}}
+\toprule\noalign{}
+Método & Estimativa & Variância & ErroPadrão \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Monte Carlo & 1.717299 & 2.4e-06 & 0.0015570 \\
+Antitética & 1.718438 & 0.0e+00 & 0.0001984 \\
+\end{longtable}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{cat}\NormalTok{(}\StringTok{"}\SpecialCharTok{\textbackslash{}n}\StringTok{Valor exato:"}\NormalTok{, }\FunctionTok{round}\NormalTok{(valor\_exato, }\DecValTok{7}\NormalTok{),}
+    \StringTok{"}\SpecialCharTok{\textbackslash{}n}\StringTok{Redução percentual na variância:"}\NormalTok{, }\FunctionTok{round}\NormalTok{(reducao, }\DecValTok{4}\NormalTok{), }\StringTok{"\%}\SpecialCharTok{\textbackslash{}n}\StringTok{"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Valor exato: 1.718282 
+## Redução percentual na variância: 98.3765 %
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{boxplot}\NormalTok{(estimativas\_mc, estimativas\_ant,}
+        \AttributeTok{names =} \FunctionTok{c}\NormalTok{(}\StringTok{"MC Simples"}\NormalTok{, }\StringTok{"Antitética"}\NormalTok{),}
+        \AttributeTok{main =} \StringTok{"Variabilidade dos Estimadores (M = 200)"}\NormalTok{,}
+        \AttributeTok{ylab =} \StringTok{"Estimativas de θ"}\NormalTok{,}
+        \AttributeTok{col =} \FunctionTok{c}\NormalTok{(}\StringTok{"lightblue"}\NormalTok{, }\StringTok{"lightgreen"}\NormalTok{))}
+\FunctionTok{abline}\NormalTok{(}\AttributeTok{h =}\NormalTok{ valor\_exato, }\AttributeTok{col =} \StringTok{"red"}\NormalTok{, }\AttributeTok{lty =} \DecValTok{2}\NormalTok{, }\AttributeTok{lwd =} \DecValTok{2}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\pandocbounded{\includegraphics[keepaspectratio]{lista3_MCCDII_files/figure-latex/ex1-1.pdf}}
+
+Portanto, percebemos que a técnica da variável antitética melhora a
+eficiência da estimativa, uma vez que reduz a variância.
+
+\section{Questão 2}\label{questuxe3o-2}
+
+Suponha que Y seja uma variável aleatória normal com média 1 e variância
+1, e que, condicionalmente a \(Y=y\), a variável X seja normal com média
+y e variância 4. Deseja-se usar simulação para estimar eficientemente
+\(\theta=P\{X>1\}\).
+
+\subsection{\texorpdfstring{\textbf{a) Explique como obter o estimador
+de simulação de Monte Carlo
+simples.}}{a) Explique como obter o estimador de simulação de Monte Carlo simples.}}\label{a-explique-como-obter-o-estimador-de-simulauxe7uxe3o-de-monte-carlo-simples.}
+
+\subsubsection{Solução}\label{soluuxe7uxe3o-1}
+
+Pela lei da probabilidade total, a marginal de \(X\) é \(N(1,5)\), e
+portanto o valor exato é \(\theta = P(X > 1) = 0.5\).O método de Monte
+Carlo simples simula diretamente pares \((Y, X)\) e calcula a proporção
+de vezes em que \(X > 1\).
+
+O estimador (para \(\theta = \mathbb{E}[I(X>1)]\) é simples:
+\(\hat\theta_{MC} = \frac{1}{K}\sum_{i=1}^K I(X_i > 1)\), onde
+\(I(\cdot)\) é a função indicadora. Esse método é fácil, mas apresenta
+alta variância porque depende da dupla simulação de \(Y\) e do erro
+\(\varepsilon\).
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# parâmetros}
+\NormalTok{K }\OtherTok{\textless{}{-}} \DecValTok{10000} \CommentTok{\# amostras por replicação}
+\NormalTok{M }\OtherTok{\textless{}{-}} \DecValTok{200}  \CommentTok{\# número de replicações}
+\NormalTok{mu\_Y }\OtherTok{\textless{}{-}} \DecValTok{1}
+\NormalTok{sigma2\_Y }\OtherTok{\textless{}{-}} \DecValTok{1}
+\NormalTok{sigma2\_XdadoY }\OtherTok{\textless{}{-}} \DecValTok{4}
+\NormalTok{theta\_exato }\OtherTok{\textless{}{-}} \FloatTok{0.5}
+
+\NormalTok{estimativas\_mc }\OtherTok{\textless{}{-}} \FunctionTok{numeric}\NormalTok{(M)}
+
+\FunctionTok{set.seed}\NormalTok{(}\DecValTok{123456789}\NormalTok{)}
+
+\ControlFlowTok{for}\NormalTok{ (m }\ControlFlowTok{in} \DecValTok{1}\SpecialCharTok{:}\NormalTok{M) \{}
+\NormalTok{  Y }\OtherTok{\textless{}{-}} \FunctionTok{rnorm}\NormalTok{(K, }\AttributeTok{mean =}\NormalTok{ mu\_Y, }\AttributeTok{sd =} \FunctionTok{sqrt}\NormalTok{(sigma2\_Y))}
+\NormalTok{  epsilon }\OtherTok{\textless{}{-}} \FunctionTok{rnorm}\NormalTok{(K, }\AttributeTok{mean =} \DecValTok{0}\NormalTok{, }\AttributeTok{sd =} \FunctionTok{sqrt}\NormalTok{(sigma2\_XdadoY))}
+  
+  \CommentTok{\# X condicional a Y}
+\NormalTok{  X }\OtherTok{\textless{}{-}}\NormalTok{ Y }\SpecialCharTok{+}\NormalTok{ epsilon}
+  
+\NormalTok{  estimativas\_mc[m] }\OtherTok{\textless{}{-}} \FunctionTok{mean}\NormalTok{(X }\SpecialCharTok{\textgreater{}} \DecValTok{1}\NormalTok{)}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{\texorpdfstring{\textbf{b) Mostre como a esperança
+condicional pode ser usada para obter um estimador
+aprimorado.}}{b) Mostre como a esperança condicional pode ser usada para obter um estimador aprimorado.}}\label{b-mostre-como-a-esperanuxe7a-condicional-pode-ser-usada-para-obter-um-estimador-aprimorado.}
+
+\subsubsection{Solução}\label{soluuxe7uxe3o-2}
+
+Podemos reduzir a variância substituindo a indicadora \(I(X>1)\) por sua
+esperança condicional dado \(Y\):
+
+\[
+g(Y) = E[I(X > 1) \mid Y] = P(X > 1 \mid Y) = 1 - \Phi!\left(\frac{1 - Y}{2}\right) = \Phi!\left(\frac{Y - 1}{2}\right)
+\] Assim, o novo estimador é
+\(\hat\theta_{EC} = \frac{1}{K} \sum_{i=1}^K g(Y_i)\). Faz sentido
+utilizar esse novo estimador uma vez que esse método elimina a
+variabilidade extra introduzida pela simulação de \(X\), e como
+consequência, a variância de \(\hat\theta_{EC}\) é sempre menor ou igual
+à de \(\hat\theta_{MC}\) pelo teorema de Rao-Blackwell.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{estimativas\_ec }\OtherTok{\textless{}{-}} \FunctionTok{numeric}\NormalTok{(M)}
+
+\ControlFlowTok{for}\NormalTok{ (m }\ControlFlowTok{in} \DecValTok{1}\SpecialCharTok{:}\NormalTok{M) \{}
+\NormalTok{  Y }\OtherTok{\textless{}{-}} \FunctionTok{rnorm}\NormalTok{(K, }\AttributeTok{mean =}\NormalTok{ mu\_Y, }\AttributeTok{sd =} \FunctionTok{sqrt}\NormalTok{(sigma2\_Y))}
+  
+  \CommentTok{\#condicional g(Y) = P(X\textgreater{}1|Y)}
+\NormalTok{  g\_Y }\OtherTok{\textless{}{-}} \FunctionTok{pnorm}\NormalTok{((Y }\SpecialCharTok{{-}} \DecValTok{1}\NormalTok{) }\SpecialCharTok{/} \DecValTok{2}\NormalTok{)}
+  
+\NormalTok{  estimativas\_ec[m] }\OtherTok{\textless{}{-}} \FunctionTok{mean}\NormalTok{(g\_Y)}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{\texorpdfstring{\textbf{c) Mostre como o estimador do item
+(b) pode ser ainda mais aprimorado utilizando Y como variável de
+controle.}}{c) Mostre como o estimador do item (b) pode ser ainda mais aprimorado utilizando Y como variável de controle.}}\label{c-mostre-como-o-estimador-do-item-b-pode-ser-ainda-mais-aprimorado-utilizando-y-como-variuxe1vel-de-controle.}
+
+\subsubsection{Solução}\label{soluuxe7uxe3o-3}
+
+Utilizando uma variável de controle, o objetivo é reduzir ainda mais a
+variância usando uma variável correlacionada conhecida. Nesse caso, como
+\(Y\) tem média conhecida (\(E[Y]=1\)), podemos usá-la como controle:
+
+\[
+\hat\theta_{VC} = \hat\theta_{EC} - c ( \bar Y - E[Y]),
+\]
+
+onde o coeficiente ótimo é
+\(c^\ast = \frac{\text{Cov}(g(Y), Y)}{\text{Var}(Y)}\).
+
+A variável de controle remove parte da variabilidade residual ainda
+presente em \(g(Y)\): se \(Y\) estiver fortemente correlacionado com
+\(g(Y)\), a redução de variância pode ser expressiva.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{estimativas\_vc }\OtherTok{\textless{}{-}} \FunctionTok{numeric}\NormalTok{(M)}
+
+\ControlFlowTok{for}\NormalTok{ (m }\ControlFlowTok{in} \DecValTok{1}\SpecialCharTok{:}\NormalTok{M) \{}
+\NormalTok{  Y }\OtherTok{\textless{}{-}} \FunctionTok{rnorm}\NormalTok{(K, }\AttributeTok{mean =}\NormalTok{ mu\_Y, }\AttributeTok{sd =} \FunctionTok{sqrt}\NormalTok{(sigma2\_Y))}
+  
+  \CommentTok{\# condicional e coeficiente ótimo}
+\NormalTok{  g\_Y }\OtherTok{\textless{}{-}} \FunctionTok{pnorm}\NormalTok{((Y }\SpecialCharTok{{-}} \DecValTok{1}\NormalTok{) }\SpecialCharTok{/} \DecValTok{2}\NormalTok{)}
+\NormalTok{  c\_chapeu }\OtherTok{\textless{}{-}} \FunctionTok{cov}\NormalTok{(g\_Y, Y) }\SpecialCharTok{/} \FunctionTok{var}\NormalTok{(Y)}
+  
+\NormalTok{  Y\_barra }\OtherTok{\textless{}{-}} \FunctionTok{mean}\NormalTok{(Y)}
+\NormalTok{  estimativas\_vc[m] }\OtherTok{\textless{}{-}} \FunctionTok{mean}\NormalTok{(g\_Y) }\SpecialCharTok{{-}}\NormalTok{ c\_chapeu }\SpecialCharTok{*}\NormalTok{ (Y\_barra }\SpecialCharTok{{-}}\NormalTok{ mu\_Y)}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{\texorpdfstring{\textbf{d) Implemente os três métodos acima
+e mostre a variabilidade dos estimadores replicando o uso de cada
+algoritmo 200
+vezes.}}{d) Implemente os três métodos acima e mostre a variabilidade dos estimadores replicando o uso de cada algoritmo 200 vezes.}}\label{d-implemente-os-truxeas-muxe9todos-acima-e-mostre-a-variabilidade-dos-estimadores-replicando-o-uso-de-cada-algoritmo-200-vezes.}
+
+\subsubsection{Solução}\label{soluuxe7uxe3o-4}
+
+Podemos comparar empiricamente, através das simulações, a variabilidade,
+a média estimada (viés) e a redução percentual de variância entre os
+métodos.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ep\_mc }\OtherTok{\textless{}{-}} \FunctionTok{sd}\NormalTok{(estimativas\_mc)}
+\NormalTok{ep\_ec }\OtherTok{\textless{}{-}} \FunctionTok{sd}\NormalTok{(estimativas\_ec)}
+\NormalTok{ep\_vc }\OtherTok{\textless{}{-}} \FunctionTok{sd}\NormalTok{(estimativas\_vc)}
+
+\NormalTok{media\_mc }\OtherTok{\textless{}{-}} \FunctionTok{mean}\NormalTok{(estimativas\_mc)}
+\NormalTok{media\_ec }\OtherTok{\textless{}{-}} \FunctionTok{mean}\NormalTok{(estimativas\_ec)}
+\NormalTok{media\_vc }\OtherTok{\textless{}{-}} \FunctionTok{mean}\NormalTok{(estimativas\_vc)}
+
+\CommentTok{\# redução de variância (em comparação com o método simples)}
+\NormalTok{reducao\_ec }\OtherTok{\textless{}{-}}\NormalTok{ (ep\_mc}\SpecialCharTok{\^{}}\DecValTok{2} \SpecialCharTok{{-}}\NormalTok{ ep\_ec}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{) }\SpecialCharTok{/}\NormalTok{ ep\_mc}\SpecialCharTok{\^{}}\DecValTok{2} \SpecialCharTok{*} \DecValTok{100}
+\NormalTok{reducao\_vc }\OtherTok{\textless{}{-}}\NormalTok{ (ep\_mc}\SpecialCharTok{\^{}}\DecValTok{2} \SpecialCharTok{{-}}\NormalTok{ ep\_vc}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{) }\SpecialCharTok{/}\NormalTok{ ep\_mc}\SpecialCharTok{\^{}}\DecValTok{2} \SpecialCharTok{*} \DecValTok{100}
+
+\NormalTok{resultados }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}
+  \StringTok{\textasciigrave{}}\AttributeTok{Método}\StringTok{\textasciigrave{}} \OtherTok{=} \FunctionTok{c}\NormalTok{(}\StringTok{"MC Simples"}\NormalTok{, }\StringTok{"Esperança Condicional"}\NormalTok{, }\StringTok{"EC + Variável de Controle"}\NormalTok{),}
+  \StringTok{\textasciigrave{}}\AttributeTok{Média Estimada}\StringTok{\textasciigrave{}} \OtherTok{=} \FunctionTok{c}\NormalTok{(media\_mc, media\_ec, media\_vc),}
+  \StringTok{\textasciigrave{}}\AttributeTok{Erro Padrão Estimado}\StringTok{\textasciigrave{}} \OtherTok{=} \FunctionTok{c}\NormalTok{(ep\_mc, ep\_ec, ep\_vc),}
+  \StringTok{\textasciigrave{}}\AttributeTok{Redução de Variância}\StringTok{\textasciigrave{}} \OtherTok{=} \FunctionTok{c}\NormalTok{(}\FloatTok{0.0}\NormalTok{, reducao\_ec, reducao\_vc)}
+\NormalTok{)}
+\FunctionTok{kable}\NormalTok{(resultados)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.3133}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.1807}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2530}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2530}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Método
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Média.Estimada
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Erro.Padrão.Estimado
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Redução.de.Variância
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+MC Simples & 0.5000730 & 0.0049881 & 0.00000 \\
+Esperança Condicional & 0.5000034 & 0.0018497 & 86.24926 \\
+EC + Variável de Controle & 0.5000134 & 0.0001411 & 99.92002 \\
+\end{longtable}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{boxplot}\NormalTok{(estimativas\_mc, estimativas\_ec, estimativas\_vc,}
+        \AttributeTok{names =} \FunctionTok{c}\NormalTok{(}\StringTok{"MC Simples"}\NormalTok{, }\StringTok{"E. Condicional"}\NormalTok{, }\StringTok{"EC + VC"}\NormalTok{),}
+        \AttributeTok{main =} \StringTok{"Variabilidade dos Estimadores (M=200)"}\NormalTok{,}
+        \AttributeTok{ylab =} \StringTok{"Estimativas de theta"}\NormalTok{,}
+        \AttributeTok{col =} \FunctionTok{c}\NormalTok{(}\StringTok{"lightblue"}\NormalTok{, }\StringTok{"lightgreen"}\NormalTok{, }\StringTok{"salmon"}\NormalTok{))}
+\FunctionTok{abline}\NormalTok{(}\AttributeTok{h =}\NormalTok{ theta\_exato, }\AttributeTok{col =} \StringTok{"red"}\NormalTok{, }\AttributeTok{lty =} \DecValTok{2}\NormalTok{, }\AttributeTok{lwd =} \DecValTok{2}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\pandocbounded{\includegraphics[keepaspectratio]{lista3_MCCDII_files/figure-latex/ex2d-1.pdf}}
+
+Logo, concluímos que o estimador de Monte Carlo simples é correto, mas
+ineficiente. A esperança condicional (de acordo com o teorema de
+Rao-Blackwell) melhora a eficiência sem introduzir viés e a adição da
+variável de controle \(Y\) produz ganhos adicionais, embora menores,
+refinando o estimador.
+
+\section{Questão 3}\label{questuxe3o-3}
+
+Obtenha uma estimativa de Monte Carlo para
+\(\int_{1}^{\infty}\frac{x^{2}}{\sqrt{2\pi}}e^{-x^{2}/2}dx\) utilizando
+o método de amostragem por importância (importance sampling).
+
+\subsection{Solução}\label{soluuxe7uxe3o-5}
+
+No \textit{Importance Sampling} podemos reescrever a integral alvo
+(\(f(x)\)) de uma forma que possamos amostrar de uma distribuição de
+probabilidade proposta (\(g(x)\)) da nossa escolha, para isso
+reescrevemos:
+
+\(\int f(x)dx = \int g(x) \frac{f(x)}{g(x)}dx = \int g(x)w(x)dx\) onde
+\(w(x)\) chamamos de peso.
+
+Utilizaremos dessa integral como valor esperado da função
+\(w(x) = \frac{f(x)}{g(x)}\) quando amostrarmos \(X\) da proposta
+\(g(x)\):
+
+\(I = E_g[w(x)]\)
+
+Logo, nosso Monte Carlo para \(I\) com \(N\) amostras será a média:
+
+\(Î = \frac{1}{N}\sum_{i=1}^{N} w(x)\)
+
+Temos como alvo
+\(f(x) = \int_{1}^{\infty}\frac{x^{2}}{\sqrt{2\pi}}e^{-x^{2}/2}dx\), que
+pode ser interpretada como \(f(x) = x^2 \cdot \phi(x)\), onde
+\(\phi(x) = \frac{1}{\sqrt{2\pi}}e^{-x^{2}/2}\) é a densidade da Normal
+Padrão. Como proposta escolhemos a Normal Truncada no intervalo da
+integral alvo, \([1, \infty)\), \(g(x)=\frac{\phi(x)}{1-\Phi(1)}\), onde
+o denominador iremos chamar de constante normalizadora \(C=1-\Phi(1)\).
+
+Reconstruindo nossa função de peso \(w(x)\) teremos:
+
+\(w(x) = \frac{f(x)}{g(x)} = \frac{x^2 \cdot \phi(x)}{\frac{\phi(x)}{C}} = C \cdot x^2\)
+
+Então teremos nosso estimador de Monte Carlo:
+
+\(Î = \frac{1}{N}\sum_{i=1}^{N}C\cdot x_i^2\)
+
+Amostra proposta \(g(x)\):
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{set.seed}\NormalTok{(}\DecValTok{453}
+\NormalTok{         )}
+\NormalTok{dnormtrunc }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(x, }\AttributeTok{mu=}\DecValTok{0}\NormalTok{, }\AttributeTok{sigma=}\DecValTok{1}\NormalTok{, a, b)\{}
+\NormalTok{  d }\OtherTok{\textless{}{-}} \FunctionTok{dnorm}\NormalTok{(x, mu, sigma)}\SpecialCharTok{/}\NormalTok{( }\FunctionTok{pnorm}\NormalTok{(b, mu, sigma) }\SpecialCharTok{{-}} \FunctionTok{pnorm}\NormalTok{(a, mu, sigma) )}
+\NormalTok{\}}
+
+\NormalTok{rnormtrunc }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(n, }\AttributeTok{mu=}\DecValTok{0}\NormalTok{, }\AttributeTok{sigma=}\DecValTok{1}\NormalTok{, a, b)\{}
+\NormalTok{  us }\OtherTok{\textless{}{-}} \FunctionTok{runif}\NormalTok{(n)}
+\NormalTok{  p1 }\OtherTok{\textless{}{-}} \FunctionTok{pnorm}\NormalTok{(a, mu, sigma)}
+\NormalTok{  p2 }\OtherTok{\textless{}{-}} \FunctionTok{pnorm}\NormalTok{(b, mu, sigma)}
+\NormalTok{  p }\OtherTok{\textless{}{-}}\NormalTok{ p1 }\SpecialCharTok{+}\NormalTok{ (p2}\SpecialCharTok{{-}}\NormalTok{p1)}\SpecialCharTok{*}\NormalTok{us}
+\NormalTok{  amostra }\OtherTok{\textless{}{-}} \FunctionTok{qnorm}\NormalTok{( p, }\AttributeTok{mean=}\NormalTok{mu, }\AttributeTok{sd=}\NormalTok{sigma )}
+\NormalTok{\}}
+
+\NormalTok{a}\OtherTok{=}\DecValTok{1}
+\NormalTok{b}\OtherTok{=}\DecValTok{1000000} \CommentTok{\#Aproximacao de um numero muito grande como "infinito"}
+\NormalTok{amostra\_proposta }\OtherTok{\textless{}{-}} \FunctionTok{rnormtrunc}\NormalTok{(}\DecValTok{100000}\NormalTok{, }\AttributeTok{a=}\NormalTok{a, }\AttributeTok{b=}\NormalTok{b)}
+
+\FunctionTok{par}\NormalTok{(}\AttributeTok{mar =} \FunctionTok{c}\NormalTok{(}\DecValTok{4}\NormalTok{, }\DecValTok{4}\NormalTok{, }\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{))}
+\FunctionTok{hist}\NormalTok{(amostra\_proposta, }\AttributeTok{col =} \StringTok{"lightblue"}\NormalTok{, }\AttributeTok{xlab =} \FunctionTok{expression}\NormalTok{(x), }\AttributeTok{ylab =} \StringTok{"Densidade"}\NormalTok{, }
+     \AttributeTok{prob =}\NormalTok{ T, }\AttributeTok{main =} \StringTok{""}\NormalTok{)}
+\NormalTok{grid }\OtherTok{\textless{}{-}} \FunctionTok{seq}\NormalTok{(a, b, }\AttributeTok{by =} \FloatTok{0.01}\NormalTok{)}
+\FunctionTok{lines}\NormalTok{(grid, }\FunctionTok{dnormtrunc}\NormalTok{(grid, }\AttributeTok{a=}\NormalTok{a, }\AttributeTok{b=}\NormalTok{b), }\AttributeTok{col =} \StringTok{"red"}\NormalTok{, }\AttributeTok{lwd =} \DecValTok{2}\NormalTok{ )}
+\end{Highlighting}
+\end{Shaded}
+
+\pandocbounded{\includegraphics[keepaspectratio]{lista3_MCCDII_files/figure-latex/amostra-proposta-sir-1.pdf}}
+
+Simulação de Monte Carlo:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{N }\OtherTok{\textless{}{-}} \DecValTok{100000}
+\NormalTok{C }\OtherTok{\textless{}{-}} \DecValTok{1} \SpecialCharTok{{-}} \FunctionTok{pnorm}\NormalTok{(}\DecValTok{1}\NormalTok{)}
+\NormalTok{amostras\_x }\OtherTok{\textless{}{-}} \FunctionTok{rnormtrunc}\NormalTok{(}\AttributeTok{n =}\NormalTok{ N, }\AttributeTok{mu =} \DecValTok{0}\NormalTok{, }\AttributeTok{sigma =} \DecValTok{1}\NormalTok{, }\AttributeTok{a =} \DecValTok{1}\NormalTok{, }\AttributeTok{b =} \ConstantTok{Inf}\NormalTok{)}
+
+\NormalTok{estimativa\_I }\OtherTok{\textless{}{-}} \FunctionTok{mean}\NormalTok{(C }\SpecialCharTok{*}\NormalTok{ amostras\_x}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{)}
+\NormalTok{valor\_exato }\OtherTok{\textless{}{-}} \FunctionTok{dnorm}\NormalTok{(}\DecValTok{1}\NormalTok{) }\SpecialCharTok{+}\NormalTok{ (}\DecValTok{1} \SpecialCharTok{{-}} \FunctionTok{pnorm}\NormalTok{(}\DecValTok{1}\NormalTok{))}
+
+\NormalTok{tabela }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}
+  \AttributeTok{Metodo =} \FunctionTok{c}\NormalTok{(}\StringTok{"Estimativa de Monte Carlo"}\NormalTok{, }\StringTok{"Valor Analitico"}\NormalTok{),}
+  \AttributeTok{Valor =} \FunctionTok{c}\NormalTok{(estimativa\_I, valor\_exato)}
+\NormalTok{)}
+
+\FunctionTok{kable}\NormalTok{(tabela, }
+      \AttributeTok{caption =} \StringTok{"Metodo para Integral"}\NormalTok{,}
+      \AttributeTok{booktabs =}\NormalTok{ T) }\SpecialCharTok{\%\textgreater{}\%}
+    \FunctionTok{kable\_styling}\NormalTok{(}\AttributeTok{bootstrap\_options =} \FunctionTok{c}\NormalTok{(}\StringTok{"simple"}\NormalTok{, }\StringTok{"hover"}\NormalTok{), }
+                  \AttributeTok{full\_width =}\NormalTok{ F,}
+                  \AttributeTok{position =} \StringTok{"center"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{longtable}[t]{lr}
+\caption{\label{tab:monte-carlo-sir}Metodo para Integral}\\
+\toprule
+Metodo & Valor\\
+\midrule
+Estimativa de Monte Carlo & 0.4001593\\
+Valor Analitico & 0.4006260\\
+\bottomrule
+\end{longtable}
+
+\section{Questão 4}\label{questuxe3o-4}
+
+Utilize o algoritmo de Newton-Raphson para estimar os parâmetros de um
+modelo de regressão Poisson em que
+\(y_{i}\sim Poisson(\lambda=exp\{\beta_{0}+\beta_{1}x_{i}\})\). Gere
+dados do modelo de regressão e avalie se o algoritmo fornece boas
+estimativas.
+
+\subsection{Solução}\label{soluuxe7uxe3o-6}
+
+Para estimar os parâmetros \(\beta_0\) e \(\beta_1\) de uma regressão
+Poisson, precisamos encontrar os valores que maximizam a função de
+log-verossimilhança \((l(\beta))\). Nesse caso procuramos o ponto onde a
+primeira derivada de \(f(x)\) é igual a zero.
+
+Como o problema é multidimensional (temos dois \(\beta\)s), nossas
+ferramentas são:
+
+\begin{itemize}
+\item
+  A 1º derivada \(g'(x)\): Vetor Score \(U(\beta)\) com as derivadas
+  parciais de \(l(\beta)\) em relação a cada \(\beta\). Nosso objetivo é
+  encontrar o \(\beta\) que faz \(U(\beta) = 0\).
+\item
+  A 2º derivada \(g''(x)\): Matriz Hessiana \(H(\beta)\). É uma matriz
+  2x2 com todas as segundas derivadas.
+\end{itemize}
+
+Usando a fórmula de atualização de Newton-Raphson
+\[\beta^{(t+1)} = \beta^{(t)} - [H(\beta^{(t)}]^{-1}U(\beta^{(t)})\].
+Onde \([H^{-1}]\) é a matriz inversa hessiana.
+
+Para implementar, definimos os componentes do nosso GLM Poisson. O
+preditor linear é \(\eta = X\beta\). A média da Poisson, \(\lambda\), é
+ligada ao preditor pela função de ligação log, \(\log(\lambda) = \eta\).
+
+Invertendo a ligação, temos \(\lambda = \exp(\eta)\). Esta média
+\(\lambda\) é usada tanto no Vetor Score (\(U\)) quanto na Matriz
+Hessiana (\(H\)). A Hessiana é calculada como \(H = -X^T W X\), onde
+\(W\) é uma matriz diagonal de pesos com \(W_{ii} = \lambda_i\).
+
+\textbf{Algoritmo}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi})}
+\item
+  Definir um chute inicial \(\beta^{(0)}\)
+\item
+  Loop de Iterações:
+\end{enumerate}
+
+- calcular \(\eta^{(t)} = X\beta^{(t)}\) e
+\(\lambda^{(t)} = exp(\eta^{(t)})\)
+
+- calcular o \textbf{vetor score} \(U^{(t)} = X^T(y - \lambda^{(t)})\)
+
+- calcular a \textbf{matriz
+hessiana}:\(H^{(t)} = -\mathbf{X}^T \mathbf{W}^{(t)} \mathbf{X}\)
+
+- calcular o passo: \(\Delta = [H^{(t)}]^{-1} U^{(t)}\)
+
+- atualizar o chute: \(\beta^{(t+1)} = \beta^{(t)} - \Delta\)
+
+- Se a soma das mudanças for menor que a tolerância, paramos o loop.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{set.seed}\NormalTok{(}\DecValTok{42}\NormalTok{)}
+
+\NormalTok{n }\OtherTok{\textless{}{-}} \DecValTok{1000} \CommentTok{\# tamanho da amostra}
+\NormalTok{beta\_real }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\FloatTok{1.5}\NormalTok{, }\SpecialCharTok{{-}}\FloatTok{0.8}\NormalTok{) }\CommentTok{\# parâmetros verdadeiros}
+
+\NormalTok{x }\OtherTok{\textless{}{-}} \FunctionTok{runif}\NormalTok{(n, }\AttributeTok{min =} \SpecialCharTok{{-}}\DecValTok{3}\NormalTok{, }\AttributeTok{max =} \DecValTok{3}\NormalTok{) }
+\NormalTok{X }\OtherTok{\textless{}{-}} \FunctionTok{cbind}\NormalTok{(}\FunctionTok{rep}\NormalTok{(}\DecValTok{1}\NormalTok{, n), x) }\CommentTok{\# Matriz de desenho}
+
+\CommentTok{\# Calcular o preditor linear e a média }
+\NormalTok{eta\_real }\OtherTok{\textless{}{-}}\NormalTok{ X }\SpecialCharTok{\%*\%}\NormalTok{ beta\_real   }\CommentTok{\# eta = beta\_0*1 + beta\_1*x\_i}
+\NormalTok{lambda\_real }\OtherTok{\textless{}{-}} \FunctionTok{exp}\NormalTok{(eta\_real)  }\CommentTok{\# lambda = exp(eta)}
+
+\CommentTok{\# Gerar os dados da distribuição Poisson}
+\NormalTok{y }\OtherTok{\textless{}{-}} \FunctionTok{rpois}\NormalTok{(n, }\AttributeTok{lambda =}\NormalTok{ lambda\_real)}
+
+\CommentTok{\# Chute inicial para os parâmetros}
+\NormalTok{beta\_estimado }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{0}\NormalTok{)}
+
+\NormalTok{tolerancia }\OtherTok{\textless{}{-}} \FloatTok{1e{-}8}      \CommentTok{\# Critério de parada}
+\NormalTok{max\_iteracoes }\OtherTok{\textless{}{-}} \DecValTok{100}  \CommentTok{\# Limite de segurança}
+
+
+\ControlFlowTok{for}\NormalTok{ (i }\ControlFlowTok{in} \DecValTok{1}\SpecialCharTok{:}\NormalTok{max\_iteracoes) \{}
+  
+  \CommentTok{\# Calcular eta e lambda com o beta ATUAL}
+\NormalTok{  eta\_atual }\OtherTok{\textless{}{-}}\NormalTok{ X }\SpecialCharTok{\%*\%}\NormalTok{ beta\_estimado}
+\NormalTok{  lambda\_atual }\OtherTok{\textless{}{-}} \FunctionTok{exp}\NormalTok{(eta\_atual)}
+  
+  \CommentTok{\# Calcular o Vetor Score (U)}
+\NormalTok{  score }\OtherTok{\textless{}{-}} \FunctionTok{t}\NormalTok{(X) }\SpecialCharTok{\%*\%}\NormalTok{ (y }\SpecialCharTok{{-}}\NormalTok{ lambda\_atual)}
+  
+  \CommentTok{\# 4c. Calcular a Matriz Hessiana (H)}
+\NormalTok{  W }\OtherTok{\textless{}{-}} \FunctionTok{diag}\NormalTok{(}\FunctionTok{as.vector}\NormalTok{(lambda\_atual)) }\CommentTok{\# matriz diagonal de pesos (lambdas)}
+\NormalTok{  hessiana }\OtherTok{\textless{}{-}} \SpecialCharTok{{-}}\FunctionTok{t}\NormalTok{(X) }\SpecialCharTok{\%*\%}\NormalTok{ W }\SpecialCharTok{\%*\%}\NormalTok{ X}
+  
+  \CommentTok{\# Calcular o passo de Newton = H\^{}({-}1) * U}
+ 
+\NormalTok{  passo }\OtherTok{\textless{}{-}} \FunctionTok{solve}\NormalTok{(hessiana, score)  }\CommentTok{\# usamos solve(A, b) para calcular A\^{}({-}1) * b}
+  
+  \CommentTok{\# Atualizar os parâmetros: beta\_novo = beta\_antigo {-} passo}
+\NormalTok{  beta\_novo }\OtherTok{\textless{}{-}}\NormalTok{ beta\_estimado }\SpecialCharTok{{-}}\NormalTok{ passo}
+  
+  \CommentTok{\# Checar a convergência. Se a mudança for muito pequena, paramos o loop}
+\NormalTok{  mudanca }\OtherTok{\textless{}{-}} \FunctionTok{sum}\NormalTok{(}\FunctionTok{abs}\NormalTok{(passo))}
+  \ControlFlowTok{if}\NormalTok{ (mudanca }\SpecialCharTok{\textless{}}\NormalTok{ tolerancia) \{}
+    \FunctionTok{print}\NormalTok{(}\FunctionTok{paste}\NormalTok{(}\StringTok{"Convergência alcançada na iteração:"}\NormalTok{, i))}
+\NormalTok{    beta\_estimado }\OtherTok{\textless{}{-}}\NormalTok{ beta\_novo}
+    \ControlFlowTok{break}
+\NormalTok{  \}}
+  
+  \CommentTok{\# Se não convergiu, atualiza o chute para a próxima rodada}
+\NormalTok{  beta\_estimado }\OtherTok{\textless{}{-}}\NormalTok{ beta\_novo}
+  
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "Convergência alcançada na iteração: 29"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{print}\NormalTok{(}\StringTok{"Parâmetros Reais:"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "Parâmetros Reais:"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{beta\_real}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1]  1.5 -0.8
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{print}\NormalTok{(}\StringTok{"Parâmetros Estimados (Newton{-}Raphson):"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "Parâmetros Estimados (Newton-Raphson):"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{as.vector}\NormalTok{(beta\_estimado)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1]  1.5263798 -0.7940793
+\end{verbatim}
+
+\subsubsection{Gráfico para
+comparação}\label{gruxe1fico-para-comparauxe7uxe3o}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{plot}\NormalTok{(x, y, }\AttributeTok{main =} \StringTok{"Regressão Poisson com Newton{-}Raphson"}\NormalTok{,}
+     \AttributeTok{xlab =} \StringTok{"Variável X"}\NormalTok{, }\AttributeTok{ylab =} \StringTok{"Contagem Y"}\NormalTok{,}
+     \AttributeTok{pch =} \DecValTok{20}\NormalTok{, }\AttributeTok{col =} \StringTok{"gray"}\NormalTok{,}
+     \AttributeTok{ylim =} \FunctionTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\FunctionTok{max}\NormalTok{(y[x }\SpecialCharTok{\textless{}} \DecValTok{0}\NormalTok{]))) }
+
+\CommentTok{\# curva real}
+\FunctionTok{curve}\NormalTok{(}\FunctionTok{exp}\NormalTok{(beta\_real[}\DecValTok{1}\NormalTok{] }\SpecialCharTok{+}\NormalTok{ beta\_real[}\DecValTok{2}\NormalTok{] }\SpecialCharTok{*}\NormalTok{ x),}
+      \AttributeTok{col =} \StringTok{"blue"}\NormalTok{, }\AttributeTok{lty =} \DecValTok{2}\NormalTok{, }\AttributeTok{lwd =} \DecValTok{3}\NormalTok{, }\AttributeTok{add =} \ConstantTok{TRUE}\NormalTok{)}
+
+\CommentTok{\# curva estimada}
+\FunctionTok{curve}\NormalTok{(}\FunctionTok{exp}\NormalTok{(beta\_estimado[}\DecValTok{1}\NormalTok{] }\SpecialCharTok{+}\NormalTok{ beta\_estimado[}\DecValTok{2}\NormalTok{] }\SpecialCharTok{*}\NormalTok{ x),}
+      \AttributeTok{col =} \StringTok{"red"}\NormalTok{, }\AttributeTok{lty =} \DecValTok{1}\NormalTok{, }\AttributeTok{lwd =} \DecValTok{3}\NormalTok{, }\AttributeTok{add =} \ConstantTok{TRUE}\NormalTok{)}
+
+\FunctionTok{legend}\NormalTok{(}\StringTok{"topright"}\NormalTok{,}
+       \AttributeTok{legend =} \FunctionTok{c}\NormalTok{(}\StringTok{"Dados Gerados"}\NormalTok{, }\StringTok{"Curva Real"}\NormalTok{, }\StringTok{"Curva Estimada"}\NormalTok{),}
+       \AttributeTok{col =} \FunctionTok{c}\NormalTok{(}\StringTok{"gray"}\NormalTok{, }\StringTok{"blue"}\NormalTok{, }\StringTok{"red"}\NormalTok{),}
+       \AttributeTok{lty =} \FunctionTok{c}\NormalTok{(}\ConstantTok{NA}\NormalTok{, }\DecValTok{2}\NormalTok{, }\DecValTok{1}\NormalTok{),}
+       \AttributeTok{pch =} \FunctionTok{c}\NormalTok{(}\DecValTok{20}\NormalTok{, }\ConstantTok{NA}\NormalTok{, }\ConstantTok{NA}\NormalTok{),}
+       \AttributeTok{lwd =} \FunctionTok{c}\NormalTok{(}\ConstantTok{NA}\NormalTok{, }\DecValTok{3}\NormalTok{, }\DecValTok{3}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\pandocbounded{\includegraphics[keepaspectratio]{lista3_MCCDII_files/figure-latex/unnamed-chunk-2-1.pdf}}
+
+\section{Questão 5}\label{questuxe3o-5}
+
+Implemente um estudo Monte Carlo com \(M=100\) réplicas para avaliar o
+algoritmo EM implementado nos slides para o modelo Poisson inflado de
+zeros e avalie as estimativas nos 4 cenários apresentados nos slides.
+
+\subsection{Solução}\label{soluuxe7uxe3o-7}
+
+\subsubsection{Algoritmo EM dos slides:}\label{algoritmo-em-dos-slides}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{set.seed}\NormalTok{(}\DecValTok{156}\NormalTok{)}
+
+\CommentTok{\# Gerando dados com excesso de zero }
+\NormalTok{rPoisson\_zero }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(n, lambda, p)\{}
+\NormalTok{  s }\OtherTok{\textless{}{-}} \FunctionTok{rbinom}\NormalTok{(n, }\DecValTok{1}\NormalTok{, p) }\CommentTok{\# valor 1 indica um zero em excesso}
+\NormalTok{  x }\OtherTok{\textless{}{-}} \FunctionTok{rpois}\NormalTok{(n, lambda) }\SpecialCharTok{*}\NormalTok{ (s }\SpecialCharTok{==} \DecValTok{0}\NormalTok{) }
+\NormalTok{\}}
+
+\DocumentationTok{\#\# Algoritmo EM {-} Poisson zero inflacionado}
+\NormalTok{EM\_Poisson\_zinf }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(x, M)\{}
+  \CommentTok{\# 1. Inicialize p\^{}(0) e lambda\^{}(0)}
+\NormalTok{  lambda }\OtherTok{\textless{}{-}} \DecValTok{5}
+\NormalTok{  p }\OtherTok{\textless{}{-}} \FloatTok{0.05}
+  
+\NormalTok{  lambda\_vec }\OtherTok{\textless{}{-}}\NormalTok{ lambda}
+\NormalTok{  p\_vec }\OtherTok{\textless{}{-}}\NormalTok{ p}
+  
+  \CommentTok{\# 2. Faça t=0;}
+\NormalTok{  t }\OtherTok{\textless{}{-}} \DecValTok{0}
+  
+  \CommentTok{\# 3. Repita os passos abaixo até atingir a convergência:}
+  
+  \ControlFlowTok{while}\NormalTok{(t }\SpecialCharTok{\textless{}}\NormalTok{ M)\{}
+    
+    \DocumentationTok{\#\#  Calcule gamma\_\{i1\}(t) e gamma\_\{i0\}(t)}
+\NormalTok{    aux1 }\OtherTok{\textless{}{-}}\NormalTok{ p }\SpecialCharTok{*}\NormalTok{ (x }\SpecialCharTok{==} \DecValTok{0}\NormalTok{)}\SpecialCharTok{*}\DecValTok{1} \CommentTok{\# vetor de tamanho n}
+\NormalTok{    aux2 }\OtherTok{\textless{}{-}}\NormalTok{ (}\DecValTok{1}\SpecialCharTok{{-}}\NormalTok{p) }\SpecialCharTok{*} \FunctionTok{dpois}\NormalTok{(x, lambda) }\CommentTok{\# vetor de tamanho n}
+\NormalTok{    gamma1 }\OtherTok{\textless{}{-}}\NormalTok{ aux1 }\SpecialCharTok{/}\NormalTok{ (aux1 }\SpecialCharTok{+}\NormalTok{ aux2) }\CommentTok{\# vetor de tamanho n relativo a excessos de zero}
+\NormalTok{    gamma0 }\OtherTok{\textless{}{-}} \DecValTok{1} \SpecialCharTok{{-}}\NormalTok{ gamma1}
+    
+    \DocumentationTok{\#\#  Obtenha p\^{}(t+1) e lambda\^{}(t+1) com os estimadores obtidos no passo de maximização; }
+\NormalTok{    n }\OtherTok{\textless{}{-}} \FunctionTok{length}\NormalTok{(x)}
+\NormalTok{    p }\OtherTok{\textless{}{-}} \FunctionTok{sum}\NormalTok{(gamma1)}\SpecialCharTok{/}\NormalTok{n}
+\NormalTok{    lambda }\OtherTok{\textless{}{-}} \FunctionTok{sum}\NormalTok{(x}\SpecialCharTok{*}\NormalTok{gamma0)}\SpecialCharTok{/}\FunctionTok{sum}\NormalTok{(gamma0)}
+    
+\NormalTok{    p\_vec }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(p\_vec, p)}
+\NormalTok{    lambda\_vec }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(lambda\_vec, lambda)}
+    
+    \DocumentationTok{\#\# Faça t = t+1}
+\NormalTok{    t }\OtherTok{\textless{}{-}}\NormalTok{ t }\SpecialCharTok{+} \DecValTok{1}
+\NormalTok{  \}}
+  
+  \FunctionTok{return}\NormalTok{(}\FunctionTok{list}\NormalTok{(}\AttributeTok{p =}\NormalTok{ p\_vec, }\AttributeTok{lambda =}\NormalTok{ lambda\_vec))}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\subsubsection{Estudo Monte Carlo}\label{estudo-monte-carlo}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{set.seed}\NormalTok{(}\DecValTok{123}\NormalTok{)}
+
+\CommentTok{\# Parâmetros fixos}
+\NormalTok{lambda\_real }\OtherTok{\textless{}{-}} \DecValTok{3}
+\NormalTok{p\_valores }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\FloatTok{0.05}\NormalTok{, }\FloatTok{0.10}\NormalTok{, }\FloatTok{0.20}\NormalTok{)}
+\NormalTok{n }\OtherTok{\textless{}{-}} \DecValTok{500}          \CommentTok{\# tamanho amostral}
+\NormalTok{M\_iter }\OtherTok{\textless{}{-}} \DecValTok{100}     \CommentTok{\# iterações do EM}
+\NormalTok{R }\OtherTok{\textless{}{-}} \DecValTok{100}          \CommentTok{\# número de réplicas Monte Carlo}
+
+\CommentTok{\# Armazenar resultados}
+\NormalTok{resultados }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}
+  \AttributeTok{p\_verdadeiro =} \FunctionTok{rep}\NormalTok{(p\_valores, }\AttributeTok{each =}\NormalTok{ R),}
+  \AttributeTok{p\_estimado =} \ConstantTok{NA}\NormalTok{,}
+  \AttributeTok{lambda\_estimado =} \ConstantTok{NA}
+\NormalTok{)}
+
+\CommentTok{\# Loop sobre os cenários}
+\NormalTok{i }\OtherTok{\textless{}{-}} \DecValTok{1}
+\ControlFlowTok{for}\NormalTok{(p\_verdadeiro }\ControlFlowTok{in}\NormalTok{ p\_valores)\{}
+  
+  \ControlFlowTok{for}\NormalTok{(r }\ControlFlowTok{in} \DecValTok{1}\SpecialCharTok{:}\NormalTok{R)\{}
+    \CommentTok{\# Gerar dados}
+\NormalTok{    x }\OtherTok{\textless{}{-}} \FunctionTok{rPoisson\_zero}\NormalTok{(n, lambda\_real, p\_verdadeiro)}
+    
+    \CommentTok{\# Rodar EM}
+\NormalTok{    ajuste }\OtherTok{\textless{}{-}} \FunctionTok{EM\_Poisson\_zinf}\NormalTok{(x, M\_iter)}
+    
+    \CommentTok{\# Guardar estimativas finais (último valor)}
+\NormalTok{    resultados}\SpecialCharTok{$}\NormalTok{p\_estimado[i] }\OtherTok{\textless{}{-}} \FunctionTok{tail}\NormalTok{(ajuste}\SpecialCharTok{$}\NormalTok{p, }\DecValTok{1}\NormalTok{)}
+\NormalTok{    resultados}\SpecialCharTok{$}\NormalTok{lambda\_estimado[i] }\OtherTok{\textless{}{-}} \FunctionTok{tail}\NormalTok{(ajuste}\SpecialCharTok{$}\NormalTok{lambda, }\DecValTok{1}\NormalTok{)}
+    
+\NormalTok{    i }\OtherTok{\textless{}{-}}\NormalTok{ i }\SpecialCharTok{+} \DecValTok{1}
+\NormalTok{  \}}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\subsubsection{Resumo}\label{resumo}
+
+\begin{verbatim}
+##   p_verdadeiro media_p desvio_p media_lambda desvio_lambda
+## 1         0.00   0.004    0.006        3.001         0.081
+## 2         0.05   0.049    0.015        3.011         0.081
+## 3         0.10   0.100    0.018        3.010         0.089
+## 4         0.20   0.201    0.020        3.010         0.104
+\end{verbatim}
+
+\subsubsection{Visualização}\label{visualizauxe7uxe3o}
+
+\pandocbounded{\includegraphics[keepaspectratio]{lista3_MCCDII_files/figure-latex/Q5_4-1.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{lista3_MCCDII_files/figure-latex/Q5_4-2.pdf}}
+
+Os resultados mostram que o algoritmo EM recupera bem os parâmetros
+verdadeiros em todos os cenários considerados.
+
+\section{Questão 6}\label{questuxe3o-6}
+
+Implemente o algoritmo EM para mistura de duas distribuições Normais
+apresentado nos slides e avalie a estimação em 4 cenários alterando
+tamanho amostral e valores do parâmetros.
+
+\subsection{Solução}\label{soluuxe7uxe3o-8}
+
+Considere uma amostra aleatória \(X_1, \ldots, X_n\) com função
+densidade de probabilidade dada por:
+
+\[
+f(x_i|\theta) = \sum_{k=1}^{K} P(S_i = k) P(X_i = x_i | S_i = k)
+= \sum_{k=1}^{K} p_k \, \mathcal{N}(x_i|\mu_k, \sigma_k^2),
+\]
+
+onde \(\mathcal{N}(x_i|\mu_k, \sigma_k^2)\) é a densidade normal com
+média \(\mu_k\) e variância \(\sigma_k^2\), e
+
+\[
+\theta = (p_1, \ldots, p_K, \mu_1, \ldots, \mu_K, \sigma_1^2, \ldots, \sigma_K^2).
+\]
+
+Em particular, para \(K=2\):
+
+\[
+f(x_i|\theta) = p\,\mathcal{N}(x_i|\mu_1, \sigma_1^2) + (1-p)\,\mathcal{N}(x_i|\mu_2, \sigma_2^2).
+\]
+
+A função de verossimilhança para dados completos é:
+
+\[
+L(\theta|x,s) = \prod_{i=1}^{n}
+[p\,\mathcal{N}(x_i|\mu_1,\sigma_1^2)]^{I\{s_i=1\}}
+[(1-p)\,\mathcal{N}(x_i|\mu_2,\sigma_2^2)]^{I\{s_i=2\}}.
+\]
+
+A função de log-verossimilhança correspondente é:
+
+\[
+\begin{aligned}
+l(\theta|x,s) &=
+\sum_{i=1}^{n} I\{s_i=1\} \left[\ln p - \tfrac{1}{2}\ln 2\pi - \tfrac{1}{2}\ln \sigma_1^2 - \frac{(x_i - \mu_1)^2}{2\sigma_1^2}\right] \\
+&\quad + \sum_{i=1}^{n} I\{s_i=2\} \left[\ln (1-p) - \tfrac{1}{2}\ln 2\pi - \tfrac{1}{2}\ln \sigma_2^2 - \frac{(x_i - \mu_2)^2}{2\sigma_2^2}\right].
+\end{aligned}
+\]
+
+No passo E, define-se:
+
+\[
+\gamma_{i1}^{(t)} = E[I\{S_i=1\} | x_i, \theta^{(t)}] = P(S_i=1|x_i,\theta^{(t)}),
+\] \[
+\gamma_{i2}^{(t)} = E[I\{S_i=2\} | x_i, \theta^{(t)}] = P(S_i=2|x_i,\theta^{(t)}).
+\]
+
+Assim,
+
+\[
+\begin{aligned}
+Q(\theta|\theta^{(t)}) &=
+\sum_{i=1}^{n} \gamma_{i1}^{(t)} \left[\ln p - \tfrac{1}{2}\ln 2\pi - \tfrac{1}{2}\ln \sigma_1^2 - \frac{(x_i - \mu_1)^2}{2\sigma_1^2}\right] \\
+&\quad + \gamma_{i2}^{(t)} \left[\ln (1-p) - \tfrac{1}{2}\ln 2\pi - \tfrac{1}{2}\ln \sigma_2^2 - \frac{(x_i - \mu_2)^2}{2\sigma_2^2}\right].
+\end{aligned}
+\]
+
+No passo M, atualizamos os parâmetros maximizando
+\(Q(\theta | \theta^{(t)})\):
+
+\[
+p^{(t+1)} = \frac{1}{n}\sum_{i=1}^{n}\gamma_{i1}^{(t)}, \quad
+1 - p^{(t+1)} = \frac{1}{n}\sum_{i=1}^{n}\gamma_{i2}^{(t)}.
+\]
+
+De forma análoga:
+
+\[
+\mu_1^{(t+1)} = \frac{\sum_i \gamma_{i1}^{(t)} x_i}{\sum_i \gamma_{i1}^{(t)}}, \quad
+\mu_2^{(t+1)} = \frac{\sum_i \gamma_{i2}^{(t)} x_i}{\sum_i \gamma_{i2}^{(t)}},
+\]
+
+\[
+(\sigma_1^2)^{(t+1)} = \frac{\sum_i \gamma_{i1}^{(t)} (x_i - \mu_1^{(t+1)})^2}{\sum_i \gamma_{i1}^{(t)}}, \quad
+(\sigma_2^2)^{(t+1)} = \frac{\sum_i \gamma_{i2}^{(t)} (x_i - \mu_2^{(t+1)})^2}{\sum_i \gamma_{i2}^{(t)}}.
+\]
+
+Passo a Passo do Algoritmo:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Inicialize
+  \(p^{(0)}, \mu_1^{(0)}, \mu_2^{(0)}, (\sigma_1^2)^{(0)}, (\sigma_2^2)^{(0)}\);
+\item
+  Faça \(t = 0\);
+\item
+  Repita até convergência:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \textbf{Passo E:} Calcule \(\gamma_{i1}^{(t)}\) e
+    \(\gamma_{i2}^{(t)}\);
+  \item
+    \textbf{Passo M:} Atualize
+    \(p^{(t+1)}, \mu_1^{(t+1)}, \mu_2^{(t+1)}, (\sigma_1^2)^{(t+1)}, (\sigma_2^2)^{(t+1)}\);
+  \item
+    Faça \(t \leftarrow t + 1\).
+  \end{itemize}
+\end{enumerate}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{mistura\_em }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(x, mu\_init, sigma\_init, p\_init, }\AttributeTok{max\_iter =} \DecValTok{100}\NormalTok{, }\AttributeTok{tol =} \FloatTok{1e{-}6}\NormalTok{) \{}
+\NormalTok{  n }\OtherTok{\textless{}{-}} \FunctionTok{length}\NormalTok{(x)}
+\NormalTok{  mu }\OtherTok{\textless{}{-}}\NormalTok{ mu\_init     }
+\NormalTok{  sigma }\OtherTok{\textless{}{-}}\NormalTok{ sigma\_init}
+\NormalTok{  p }\OtherTok{\textless{}{-}}\NormalTok{ p\_init}
+  
+\NormalTok{  log\_veross }\OtherTok{\textless{}{-}} \FunctionTok{numeric}\NormalTok{(max\_iter)}
+  
+  \ControlFlowTok{for}\NormalTok{ (t }\ControlFlowTok{in} \DecValTok{1}\SpecialCharTok{:}\NormalTok{max\_iter)\{}
+\NormalTok{    dcomp1 }\OtherTok{\textless{}{-}}\NormalTok{ p }\SpecialCharTok{*} \FunctionTok{dnorm}\NormalTok{(x, }\AttributeTok{mean =}\NormalTok{ mu[}\DecValTok{1}\NormalTok{], }\AttributeTok{sd =}\NormalTok{ sigma[}\DecValTok{1}\NormalTok{])}
+\NormalTok{    dcomp2 }\OtherTok{\textless{}{-}}\NormalTok{ (}\DecValTok{1} \SpecialCharTok{{-}}\NormalTok{ p) }\SpecialCharTok{*} \FunctionTok{dnorm}\NormalTok{(x, }\AttributeTok{mean =}\NormalTok{ mu[}\DecValTok{2}\NormalTok{], }\AttributeTok{sd =}\NormalTok{ sigma[}\DecValTok{2}\NormalTok{])}
+    
+\NormalTok{    dtotal }\OtherTok{\textless{}{-}}\NormalTok{ dcomp1 }\SpecialCharTok{+}\NormalTok{ dcomp2}
+  
+    
+\NormalTok{    gamma1 }\OtherTok{\textless{}{-}}\NormalTok{ dcomp1 }\SpecialCharTok{/}\NormalTok{ dtotal }
+\NormalTok{    gamma2 }\OtherTok{\textless{}{-}}\NormalTok{ dcomp2 }\SpecialCharTok{/}\NormalTok{ dtotal}
+    
+\NormalTok{    log\_veross[t] }\OtherTok{\textless{}{-}} \FunctionTok{sum}\NormalTok{(}\FunctionTok{log}\NormalTok{(dtotal))}
+    
+\NormalTok{    n1 }\OtherTok{\textless{}{-}} \FunctionTok{sum}\NormalTok{(gamma1)}
+\NormalTok{    n2 }\OtherTok{\textless{}{-}} \FunctionTok{sum}\NormalTok{(gamma2)}
+    
+\NormalTok{    p\_cand }\OtherTok{\textless{}{-}}\NormalTok{ n1 }\SpecialCharTok{/}\NormalTok{ n}
+    
+\NormalTok{    mu1\_cand }\OtherTok{\textless{}{-}} \FunctionTok{sum}\NormalTok{(gamma1 }\SpecialCharTok{*}\NormalTok{ x) }\SpecialCharTok{/}\NormalTok{ n1}
+\NormalTok{    mu2\_cand }\OtherTok{\textless{}{-}} \FunctionTok{sum}\NormalTok{(gamma2 }\SpecialCharTok{*}\NormalTok{ x) }\SpecialCharTok{/}\NormalTok{ n2}
+    
+\NormalTok{    sigma1\_sq\_cand }\OtherTok{\textless{}{-}} \FunctionTok{sum}\NormalTok{(gamma1 }\SpecialCharTok{*}\NormalTok{ (x }\SpecialCharTok{{-}}\NormalTok{ mu1\_cand)}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{) }\SpecialCharTok{/}\NormalTok{ n1}
+\NormalTok{    sigma2\_sq\_cand }\OtherTok{\textless{}{-}} \FunctionTok{sum}\NormalTok{(gamma2 }\SpecialCharTok{*}\NormalTok{ (x }\SpecialCharTok{{-}}\NormalTok{ mu2\_cand)}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{) }\SpecialCharTok{/}\NormalTok{ n2}
+
+    \ControlFlowTok{if}\NormalTok{ (sigma1\_sq\_cand }\SpecialCharTok{\textless{}=} \DecValTok{0} \SpecialCharTok{||}\NormalTok{ sigma2\_sq\_cand }\SpecialCharTok{\textless{}=} \DecValTok{0}\NormalTok{) \{}
+      \ControlFlowTok{break}
+\NormalTok{    \}}
+    
+\NormalTok{    p }\OtherTok{\textless{}{-}}\NormalTok{ p\_cand}
+\NormalTok{    mu }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(mu1\_cand, mu2\_cand)}
+\NormalTok{    sigma }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\FunctionTok{sqrt}\NormalTok{(sigma1\_sq\_cand), }\FunctionTok{sqrt}\NormalTok{(sigma2\_sq\_cand))}
+    
+    \ControlFlowTok{if}\NormalTok{ (t }\SpecialCharTok{\textgreater{}} \DecValTok{1} \SpecialCharTok{\&\&} \FunctionTok{abs}\NormalTok{(log\_veross[t] }\SpecialCharTok{{-}}\NormalTok{ log\_veross[t}\DecValTok{{-}1}\NormalTok{]) }\SpecialCharTok{\textless{}}\NormalTok{ tol) \{}
+\NormalTok{      log\_veross }\OtherTok{\textless{}{-}}\NormalTok{ log\_veross[}\DecValTok{1}\SpecialCharTok{:}\NormalTok{t] }
+      \ControlFlowTok{break}
+\NormalTok{    \}}
+\NormalTok{  \}}
+  
+  \FunctionTok{return}\NormalTok{(}\FunctionTok{list}\NormalTok{(}
+    \AttributeTok{p =}\NormalTok{ p,}
+    \AttributeTok{mu =}\NormalTok{ mu,}
+    \AttributeTok{sigma =}\NormalTok{ sigma,}
+    \AttributeTok{log\_veross =}\NormalTok{ log\_veross,}
+    \AttributeTok{iter =}\NormalTok{ t,}
+    \AttributeTok{gammas =} \FunctionTok{data.frame}\NormalTok{(}\AttributeTok{gamma1 =}\NormalTok{ gamma1, }\AttributeTok{gamma2 =}\NormalTok{ gamma2)}
+\NormalTok{  ))}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\subsubsection{Cenários:}\label{cenuxe1rios}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{gerar\_mistura }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(n, p\_verd, mu\_verd, sigma\_verd) \{}
+\NormalTok{  componente }\OtherTok{\textless{}{-}} \FunctionTok{sample}\NormalTok{(}\DecValTok{1}\SpecialCharTok{:}\DecValTok{2}\NormalTok{, }\AttributeTok{size =}\NormalTok{ n, }\AttributeTok{replace =} \ConstantTok{TRUE}\NormalTok{, }\AttributeTok{prob =} \FunctionTok{c}\NormalTok{(p\_verd, }\DecValTok{1} \SpecialCharTok{{-}}\NormalTok{ p\_verd))}
+\NormalTok{  x }\OtherTok{\textless{}{-}} \FunctionTok{ifelse}\NormalTok{(componente }\SpecialCharTok{==} \DecValTok{1}\NormalTok{, }
+              \FunctionTok{rnorm}\NormalTok{(n, }\AttributeTok{mean =}\NormalTok{ mu\_verd[}\DecValTok{1}\NormalTok{], }\AttributeTok{sd =}\NormalTok{ sigma\_verd[}\DecValTok{1}\NormalTok{]),}
+              \FunctionTok{rnorm}\NormalTok{(n, }\AttributeTok{mean =}\NormalTok{ mu\_verd[}\DecValTok{2}\NormalTok{], }\AttributeTok{sd =}\NormalTok{ sigma\_verd[}\DecValTok{2}\NormalTok{]))}
+  \FunctionTok{return}\NormalTok{(x)}
+\NormalTok{\}}
+
+\NormalTok{avaliar\_cenario }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(nome\_cenario, n, p\_verd, mu\_verd, sigma\_verd) \{}
+  \FunctionTok{set.seed}\NormalTok{(}\DecValTok{123}\NormalTok{)}
+  
+\NormalTok{  x }\OtherTok{\textless{}{-}} \FunctionTok{gerar\_mistura}\NormalTok{(n, p\_verd, mu\_verd, sigma\_verd)}
+
+\NormalTok{  mu\_init }\OtherTok{\textless{}{-}} \FunctionTok{quantile}\NormalTok{(x, }\FunctionTok{c}\NormalTok{(}\FloatTok{0.25}\NormalTok{, }\FloatTok{0.75}\NormalTok{)) }
+\NormalTok{  sigma\_init }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\FunctionTok{sd}\NormalTok{(x), }\FunctionTok{sd}\NormalTok{(x))         }
+\NormalTok{  p\_init }\OtherTok{\textless{}{-}} \FloatTok{0.5}                          
+  
+\NormalTok{  resultado\_em }\OtherTok{\textless{}{-}} \FunctionTok{mistura\_em}\NormalTok{(x, mu\_init, sigma\_init, p\_init)}
+
+\NormalTok{  ordem\_verd }\OtherTok{\textless{}{-}} \FunctionTok{order}\NormalTok{(mu\_verd)}
+\NormalTok{  mu\_verd }\OtherTok{\textless{}{-}}\NormalTok{ mu\_verd[ordem\_verd]}
+\NormalTok{  sigma\_verd }\OtherTok{\textless{}{-}}\NormalTok{ sigma\_verd[ordem\_verd]}
+\NormalTok{  p\_verd }\OtherTok{\textless{}{-}} \ControlFlowTok{if}\NormalTok{ (ordem\_verd[}\DecValTok{1}\NormalTok{] }\SpecialCharTok{==} \DecValTok{1}\NormalTok{) p\_verd }\ControlFlowTok{else}\NormalTok{ (}\DecValTok{1} \SpecialCharTok{{-}}\NormalTok{ p\_verd)}
+
+\NormalTok{  ordem\_est }\OtherTok{\textless{}{-}} \FunctionTok{order}\NormalTok{(resultado\_em}\SpecialCharTok{$}\NormalTok{mu)}
+\NormalTok{  mu\_est }\OtherTok{\textless{}{-}}\NormalTok{ resultado\_em}\SpecialCharTok{$}\NormalTok{mu[ordem\_est]}
+\NormalTok{  sigma\_est }\OtherTok{\textless{}{-}}\NormalTok{ resultado\_em}\SpecialCharTok{$}\NormalTok{sigma[ordem\_est]}
+\NormalTok{  p\_est }\OtherTok{\textless{}{-}} \ControlFlowTok{if}\NormalTok{ (ordem\_est[}\DecValTok{1}\NormalTok{] }\SpecialCharTok{==} \DecValTok{1}\NormalTok{) resultado\_em}\SpecialCharTok{$}\NormalTok{p }\ControlFlowTok{else}\NormalTok{ (}\DecValTok{1} \SpecialCharTok{{-}}\NormalTok{ resultado\_em}\SpecialCharTok{$}\NormalTok{p)}
+
+\NormalTok{  tabela\_resultados }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}
+    \AttributeTok{Parametros =} \FunctionTok{c}\NormalTok{(}\StringTok{"p"}\NormalTok{, }\StringTok{"Mu"}\NormalTok{, }\StringTok{"Sigma"}\NormalTok{),}
+    \AttributeTok{Verdadeiro =} \FunctionTok{c}\NormalTok{(}
+      \FunctionTok{sprintf}\NormalTok{(}\StringTok{"\%.3f"}\NormalTok{, p\_verd),}
+      \FunctionTok{sprintf}\NormalTok{(}\StringTok{"(\%.3f, \%.3f)"}\NormalTok{, mu\_verd[}\DecValTok{1}\NormalTok{], mu\_verd[}\DecValTok{2}\NormalTok{]),}
+      \FunctionTok{sprintf}\NormalTok{(}\StringTok{"(\%.3f, \%.3f)"}\NormalTok{, sigma\_verd[}\DecValTok{1}\NormalTok{], sigma\_verd[}\DecValTok{2}\NormalTok{])}
+\NormalTok{    ),}
+    \AttributeTok{Estimado\_EM =} \FunctionTok{c}\NormalTok{(}
+      \FunctionTok{sprintf}\NormalTok{(}\StringTok{"\%.3f"}\NormalTok{, p\_est),}
+      \FunctionTok{sprintf}\NormalTok{(}\StringTok{"(\%.3f, \%.3f)"}\NormalTok{, mu\_est[}\DecValTok{1}\NormalTok{], mu\_est[}\DecValTok{2}\NormalTok{]),}
+      \FunctionTok{sprintf}\NormalTok{(}\StringTok{"(\%.3f, \%.3f)"}\NormalTok{, sigma\_est[}\DecValTok{1}\NormalTok{], sigma\_est[}\DecValTok{2}\NormalTok{])}
+\NormalTok{    )}
+\NormalTok{  )}
+  
+\NormalTok{  tabela\_formatada }\OtherTok{\textless{}{-}} \FunctionTok{kable}\NormalTok{(tabela\_resultados,}
+                            \AttributeTok{booktabs =}\NormalTok{ T) }\SpecialCharTok{\%\textgreater{}\%}
+    \FunctionTok{kable\_styling}\NormalTok{(}\AttributeTok{bootstrap\_options =} \FunctionTok{c}\NormalTok{(}\StringTok{"simple"}\NormalTok{, }\StringTok{"hover"}\NormalTok{), }
+                  \AttributeTok{full\_width =}\NormalTok{ F,}
+                  \AttributeTok{position =} \StringTok{"center"}\NormalTok{)}
+ 
+\NormalTok{  densidade\_mistura }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(x, p, mu, sigma) \{}
+\NormalTok{    p }\SpecialCharTok{*} \FunctionTok{dnorm}\NormalTok{(x, mu[}\DecValTok{1}\NormalTok{], sigma[}\DecValTok{1}\NormalTok{]) }\SpecialCharTok{+}\NormalTok{ (}\DecValTok{1} \SpecialCharTok{{-}}\NormalTok{ p) }\SpecialCharTok{*} \FunctionTok{dnorm}\NormalTok{(x, mu[}\DecValTok{2}\NormalTok{], sigma[}\DecValTok{2}\NormalTok{])}
+\NormalTok{  \}}
+  
+\NormalTok{  df\_plot }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}\AttributeTok{x =}\NormalTok{ x)}
+  
+\NormalTok{  p }\OtherTok{\textless{}{-}} \FunctionTok{ggplot}\NormalTok{(df\_plot, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ x)) }\SpecialCharTok{+}
+    \FunctionTok{geom\_histogram}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{y =}\NormalTok{ ..density..), }\AttributeTok{bins =} \DecValTok{50}\NormalTok{, }\AttributeTok{fill =} \StringTok{"lightblue"}\NormalTok{, }
+                   \AttributeTok{color =} \StringTok{"black"}\NormalTok{, }\AttributeTok{alpha =} \FloatTok{0.7}\NormalTok{) }\SpecialCharTok{+}
+    \FunctionTok{stat\_function}\NormalTok{(}\AttributeTok{fun =}\NormalTok{ densidade\_mistura, }\AttributeTok{args =} \FunctionTok{list}\NormalTok{(}\AttributeTok{p =}\NormalTok{ p\_verd, }\AttributeTok{mu =}\NormalTok{ mu\_verd, }
+                                                       \AttributeTok{sigma =}\NormalTok{ sigma\_verd),}
+                  \FunctionTok{aes}\NormalTok{(}\AttributeTok{color =} \StringTok{"Verdadeira"}\NormalTok{), }\AttributeTok{size =} \FloatTok{1.2}\NormalTok{) }\SpecialCharTok{+}
+    \FunctionTok{stat\_function}\NormalTok{(}\AttributeTok{fun =}\NormalTok{ densidade\_mistura, }\AttributeTok{args =} \FunctionTok{list}\NormalTok{(}\AttributeTok{p =}\NormalTok{ p\_est, }\AttributeTok{mu =}\NormalTok{ mu\_est, }
+                                                       \AttributeTok{sigma =}\NormalTok{ sigma\_est),}
+                  \FunctionTok{aes}\NormalTok{(}\AttributeTok{color =} \StringTok{"Estimada"}\NormalTok{), }\AttributeTok{size =} \FloatTok{1.2}\NormalTok{, }\AttributeTok{linetype =} \StringTok{"dashed"}\NormalTok{) }\SpecialCharTok{+}
+    \FunctionTok{scale\_color\_manual}\NormalTok{(}\AttributeTok{name =} \StringTok{"Densidade"}\NormalTok{, }
+                       \AttributeTok{values =} \FunctionTok{c}\NormalTok{(}\StringTok{"Verdadeira"} \OtherTok{=} \StringTok{"red3"}\NormalTok{, }\StringTok{"Estimada"} \OtherTok{=} \StringTok{"dodgerblue4"}\NormalTok{)) }\SpecialCharTok{+}
+    \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =}\NormalTok{ nome\_cenario,}
+         \AttributeTok{subtitle =} \FunctionTok{paste}\NormalTok{(}\StringTok{"n ="}\NormalTok{, n),}
+         \AttributeTok{x =} \StringTok{"Valor"}\NormalTok{,}
+         \AttributeTok{y =} \StringTok{"Densidade"}\NormalTok{) }\SpecialCharTok{+}
+    \FunctionTok{theme\_minimal}\NormalTok{()}
+  
+  \FunctionTok{print}\NormalTok{(p)}
+  
+  \FunctionTok{cat}\NormalTok{(}\FunctionTok{paste}\NormalTok{(}\StringTok{"O algoritmo convergiu em"}\NormalTok{, resultado\_em}\SpecialCharTok{$}\NormalTok{iter, }\StringTok{"iterações"}\NormalTok{))}
+  
+  \FunctionTok{return}\NormalTok{(tabela\_formatada)}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\textbf{Cenário 1}
+
+\begin{itemize}
+\item
+  \(n = 2000\)
+\item
+  \(p = 0.5\)
+\item
+  \(\mu = (0, 5)\)
+\item
+  \(\sigma = (1, 1)\)
+\end{itemize}
+
+\pandocbounded{\includegraphics[keepaspectratio]{lista3_MCCDII_files/figure-latex/mistura-normais-cenario1-1.pdf}}
+
+\begin{verbatim}
+## O algoritmo convergiu em 13 iterações
+\end{verbatim}
+
+\begin{longtable}[t]{lll}
+\toprule
+Parametros & Verdadeiro & Estimado\_EM\\
+\midrule
+p & 0.500 & 0.497\\
+Mu & (0.000, 5.000) & (0.010, 5.003)\\
+Sigma & (1.000, 1.000) & (0.995, 0.974)\\
+\bottomrule
+\end{longtable}
+
+\textbf{Cenário 2}
+
+\begin{itemize}
+\item
+  \(n = 2000\)
+\item
+  \(p = 0.5\)
+\item
+  \(\mu = (0, 2)\)
+\item
+  \(\sigma = (1, 0.8)\)
+\end{itemize}
+
+\pandocbounded{\includegraphics[keepaspectratio]{lista3_MCCDII_files/figure-latex/mistura-normais-cenario2-1.pdf}}
+
+\begin{verbatim}
+## O algoritmo convergiu em 100 iterações
+\end{verbatim}
+
+\begin{longtable}[t]{lll}
+\toprule
+Parametros & Verdadeiro & Estimado\_EM\\
+\midrule
+p & 0.500 & 0.498\\
+Mu & (0.000, 2.000) & (0.006, 2.000)\\
+Sigma & (1.000, 0.800) & (0.993, 0.784)\\
+\bottomrule
+\end{longtable}
+
+\textbf{Cenário 3}
+
+\begin{itemize}
+\item
+  \(n = 200\)
+\item
+  \(p = 0.5\)
+\item
+  \(\mu = (0, 6)\)
+\item
+  \(\sigma = (1, 1)\)
+\end{itemize}
+
+\pandocbounded{\includegraphics[keepaspectratio]{lista3_MCCDII_files/figure-latex/mistura-normais-cenario3-1.pdf}}
+
+\begin{verbatim}
+## O algoritmo convergiu em 15 iterações
+\end{verbatim}
+
+\begin{longtable}[t]{lll}
+\toprule
+Parametros & Verdadeiro & Estimado\_EM\\
+\midrule
+p & 0.500 & 0.491\\
+Mu & (0.000, 5.000) & (-0.009, 5.159)\\
+Sigma & (1.000, 1.000) & (0.899, 0.982)\\
+\bottomrule
+\end{longtable}
+
+\textbf{Cenário 4}
+
+\begin{itemize}
+\item
+  \(n = 200\)
+\item
+  \(p = 0.5\)
+\item
+  \(\mu = (0, 2)\)
+\item
+  \(\sigma = (1, 0.8)\)
+\end{itemize}
+
+\pandocbounded{\includegraphics[keepaspectratio]{lista3_MCCDII_files/figure-latex/mistura-normais-cenario4-1.pdf}}
+
+\begin{verbatim}
+## O algoritmo convergiu em 53 iterações
+\end{verbatim}
+
+\begin{longtable}[t]{lll}
+\toprule
+Parametros & Verdadeiro & Estimado\_EM\\
+\midrule
+p & 0.500 & 0.466\\
+Mu & (0.000, 2.000) & (-0.175, 2.144)\\
+Sigma & (1.000, 0.800) & (0.705, 0.717)\\
+\bottomrule
+\end{longtable}
+
+\textbf{Cenário 5}
+
+\begin{itemize}
+\item
+  \(n = 700\)
+\item
+  \(p = 0.3\)
+\item
+  \(\mu = (0, 5)\)
+\item
+  \(\sigma = (1, 1)\)
+\end{itemize}
+
+\pandocbounded{\includegraphics[keepaspectratio]{lista3_MCCDII_files/figure-latex/mistura-normais-cenario5-1.pdf}}
+
+\begin{verbatim}
+## O algoritmo convergiu em 22 iterações
+\end{verbatim}
+
+\begin{longtable}[t]{lll}
+\toprule
+Parametros & Verdadeiro & Estimado\_EM\\
+\midrule
+p & 0.300 & 0.299\\
+Mu & (0.000, 5.000) & (-0.042, 5.022)\\
+Sigma & (1.000, 1.000) & (1.024, 0.999)\\
+\bottomrule
+\end{longtable}
+
+\textbf{Cenário 6}
+
+\begin{itemize}
+\item
+  \(n = 700\)
+\item
+  \(p = 0.3\)
+\item
+  \(\mu = (0, 2)\)
+\item
+  \(\sigma = (1, 0.8)\)
+\end{itemize}
+
+\pandocbounded{\includegraphics[keepaspectratio]{lista3_MCCDII_files/figure-latex/mistura-normais-cenario6-1.pdf}}
+
+\begin{verbatim}
+## O algoritmo convergiu em 100 iterações
+\end{verbatim}
+
+\begin{longtable}[t]{lll}
+\toprule
+Parametros & Verdadeiro & Estimado\_EM\\
+\midrule
+p & 0.300 & 0.556\\
+Mu & (0.000, 2.000) & (0.752, 2.230)\\
+Sigma & (1.000, 0.800) & (1.297, 0.625)\\
+\bottomrule
+\end{longtable}
+
+\section{Questão 7}\label{questuxe3o-7}
+
+Implemente o algoritmo ECM para mistura de duas distribuições Gamas
+apresentado nos slides de variantes do algoritmo EM. Avalie as
+estimativas gerando dados de alguns cenários com mistura de duas gamas.
+
+\subsection{Solução}\label{soluuxe7uxe3o-9}
+
+\subsubsection{Passo a passo}\label{passo-a-passo-1}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Encontre um valor para \(\alpha\) que satisfaça uma equação envolvendo
+  a função \texttt{digama}. Primeiro, tente resolver usando um método de
+  busca (\texttt{uniroot}) e, se essa busca falhar, aplique
+  Newton-Raphson, um método iterativo que ajusta o \(\alpha\) usando a
+  derivada da função \texttt{digama} (\texttt{trigama}), garantindo que
+  o valor final seja positivo.
+\end{enumerate}
+
+\begin{itemize}
+\tightlist
+\item
+  A função do ECM deve receber os dados observados e os parâmetros
+  iniciais para a mistura. Depois, é necessário ter uma estrutura para
+  registrar a evolução dos parâmetros ao longo das iterações e definir
+  um loop que irá atualizar os parâmetros até atingir convergência ou o
+  número máximo de iterações.
+\end{itemize}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{1}
+\item
+  Passo E: calcule a probabilidade de cada observação pertencer à
+  primeira ou à segunda componente da mistura usando as densidades
+  atuais das duas Gamas. Não é obrigatório, mas seria uma boa prática
+  limitar essas probabilidades para evitar valores extremos ou divisões
+  por zero. Compute somas ponderadas das observações e das
+  probabilidades para usar na atualização dos parâmetros.
+\item
+  Passo CM: primeiro, atualize a proporção da primeira componente
+  (\(\delta\)) como a média das probabilidades calculadas no passo E. Em
+  segundo lugar, atualize os parâmetros de taxa (\(\beta\)) para cada
+  componente usando a média ponderada das observações, e finalmente,
+  calcule os valores intermediários que servem de entrada para resolver
+  numericamente os parâmetros de forma (\(\alpha\)) usando a função
+  criada no passo 1.
+\item
+  Estabeleça um critério de convergência (mudança menor que a
+  tolerância) e registre os resultados assim que convergir.
+\item
+  Gere os dados da mistura de das Gamas para os diferentes cenários a
+  partir de uma variável indicadora (define a qual componente cada
+  observação pertence).
+\item
+  Analise o número de iterações e os valores das estimativas dos
+  parâmetros.
+\end{enumerate}
+
+\subsubsection{Implementação do
+código}\label{implementauxe7uxe3o-do-cuxf3digo-1}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# solução numérica para alfa}
+\NormalTok{resolver\_alfa }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(C\_k, }\AttributeTok{alfa\_inicial =} \DecValTok{1}\NormalTok{) \{}
+\NormalTok{  fun }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(a) }\FunctionTok{digamma}\NormalTok{(a) }\SpecialCharTok{{-}}\NormalTok{ C\_k}
+\NormalTok{  resultado }\OtherTok{\textless{}{-}} \FunctionTok{tryCatch}\NormalTok{(\{}
+    \FunctionTok{uniroot}\NormalTok{(fun, }\AttributeTok{interval =} \FunctionTok{c}\NormalTok{(}\FloatTok{1e{-}8}\NormalTok{, }\FloatTok{1e6}\NormalTok{), }\AttributeTok{tol =} \FloatTok{1e{-}8}\NormalTok{)}\SpecialCharTok{$}\NormalTok{root}
+\NormalTok{  \}, }\AttributeTok{error =} \ControlFlowTok{function}\NormalTok{(e) \{}
+    \CommentTok{\# newton{-}raphson}
+\NormalTok{    a }\OtherTok{\textless{}{-}} \FunctionTok{max}\NormalTok{(alfa\_inicial, }\FloatTok{1e{-}6}\NormalTok{)}
+    \ControlFlowTok{for}\NormalTok{ (i }\ControlFlowTok{in} \DecValTok{1}\SpecialCharTok{:}\DecValTok{100}\NormalTok{) \{}
+\NormalTok{      g }\OtherTok{\textless{}{-}} \FunctionTok{digamma}\NormalTok{(a) }\SpecialCharTok{{-}}\NormalTok{ C\_k}
+\NormalTok{      tg }\OtherTok{\textless{}{-}} \FunctionTok{trigamma}\NormalTok{(a)}
+      \ControlFlowTok{if}\NormalTok{ (}\FunctionTok{is.na}\NormalTok{(g) }\SpecialCharTok{||} \FunctionTok{is.na}\NormalTok{(tg) }\SpecialCharTok{||}\NormalTok{ tg }\SpecialCharTok{\textless{}=} \DecValTok{0}\NormalTok{) }\ControlFlowTok{break}
+\NormalTok{      a\_novo }\OtherTok{\textless{}{-}}\NormalTok{ a }\SpecialCharTok{{-}}\NormalTok{ g }\SpecialCharTok{/}\NormalTok{ tg}
+      \ControlFlowTok{if}\NormalTok{ (a\_novo }\SpecialCharTok{\textless{}=} \DecValTok{0}\NormalTok{) a\_novo }\OtherTok{\textless{}{-}}\NormalTok{ a }\SpecialCharTok{/} \DecValTok{2}
+      \ControlFlowTok{if}\NormalTok{ (}\FunctionTok{abs}\NormalTok{(a\_novo }\SpecialCharTok{{-}}\NormalTok{ a) }\SpecialCharTok{\textless{}} \FloatTok{1e{-}8}\NormalTok{) \{ a }\OtherTok{\textless{}{-}}\NormalTok{ a\_novo; }\ControlFlowTok{break}\NormalTok{ \}}
+\NormalTok{      a }\OtherTok{\textless{}{-}}\NormalTok{ a\_novo}
+\NormalTok{    \}}
+\NormalTok{    a}
+\NormalTok{  \})}
+  \FunctionTok{as.numeric}\NormalTok{(resultado)}
+\NormalTok{\}}
+
+
+\NormalTok{ecm\_gama }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(X, parametros\_iniciais, }\AttributeTok{max\_iter =} \DecValTok{500}\NormalTok{, }\AttributeTok{tol =} \FloatTok{1e{-}6}\NormalTok{) \{}
+  
+  \CommentTok{\# parâmetros iniciais}
+\NormalTok{  theta }\OtherTok{\textless{}{-}} \FunctionTok{as.numeric}\NormalTok{(parametros\_iniciais[}\DecValTok{1}\SpecialCharTok{:}\DecValTok{5}\NormalTok{])}
+  \FunctionTok{names}\NormalTok{(theta) }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\StringTok{"delta"}\NormalTok{, }\StringTok{"alfa1"}\NormalTok{, }\StringTok{"alfa2"}\NormalTok{, }\StringTok{"beta1"}\NormalTok{, }\StringTok{"beta2"}\NormalTok{)}
+\NormalTok{  n }\OtherTok{\textless{}{-}} \FunctionTok{length}\NormalTok{(X)}
+\NormalTok{  historico }\OtherTok{\textless{}{-}} \FunctionTok{matrix}\NormalTok{(}\ConstantTok{NA}\NormalTok{, }\AttributeTok{nrow =}\NormalTok{ max\_iter, }\AttributeTok{ncol =} \DecValTok{5}\NormalTok{)}
+  \FunctionTok{colnames}\NormalTok{(historico) }\OtherTok{\textless{}{-}} \FunctionTok{names}\NormalTok{(theta)}
+  
+  \ControlFlowTok{for}\NormalTok{ (t }\ControlFlowTok{in} \DecValTok{1}\SpecialCharTok{:}\NormalTok{max\_iter) \{}
+\NormalTok{    delta\_t  }\OtherTok{\textless{}{-}}\NormalTok{ theta[}\StringTok{"delta"}\NormalTok{]}
+\NormalTok{    alfa1\_t }\OtherTok{\textless{}{-}}\NormalTok{ theta[}\StringTok{"alfa1"}\NormalTok{]}
+\NormalTok{    alfa2\_t }\OtherTok{\textless{}{-}}\NormalTok{ theta[}\StringTok{"alfa2"}\NormalTok{]}
+\NormalTok{    beta1\_t  }\OtherTok{\textless{}{-}}\NormalTok{ theta[}\StringTok{"beta1"}\NormalTok{]}
+\NormalTok{    beta2\_t  }\OtherTok{\textless{}{-}}\NormalTok{ theta[}\StringTok{"beta2"}\NormalTok{]}
+    
+    \CommentTok{\# passo E}
+\NormalTok{    f1 }\OtherTok{\textless{}{-}} \FunctionTok{dgamma}\NormalTok{(X, }\AttributeTok{shape =}\NormalTok{ alfa1\_t, }\AttributeTok{rate =}\NormalTok{ beta1\_t)}
+\NormalTok{    f2 }\OtherTok{\textless{}{-}} \FunctionTok{dgamma}\NormalTok{(X, }\AttributeTok{shape =}\NormalTok{ alfa2\_t, }\AttributeTok{rate =}\NormalTok{ beta2\_t)}
+    \CommentTok{\# p\_i = P(Z\_i = 1 | x\_i, theta\^{}(t)), onde Z\_i é a variável latente com distribuição Bernoulli}
+\NormalTok{    p\_i }\OtherTok{\textless{}{-}}\NormalTok{ (delta\_t }\SpecialCharTok{*}\NormalTok{ f1) }\SpecialCharTok{/}\NormalTok{ (delta\_t }\SpecialCharTok{*}\NormalTok{ f1 }\SpecialCharTok{+}\NormalTok{ (}\DecValTok{1} \SpecialCharTok{{-}}\NormalTok{ delta\_t) }\SpecialCharTok{*}\NormalTok{ f2)}
+    \CommentTok{\# para garantir estabilidade numérica}
+\NormalTok{    p\_i }\OtherTok{\textless{}{-}} \FunctionTok{pmin}\NormalTok{(}\FunctionTok{pmax}\NormalTok{(p\_i, }\FloatTok{1e{-}10}\NormalTok{), }\DecValTok{1} \SpecialCharTok{{-}} \FloatTok{1e{-}10}\NormalTok{)}
+    
+    \CommentTok{\# passo CM1: maximização condicional em relação a delta}
+\NormalTok{    delta\_novo }\OtherTok{\textless{}{-}} \FunctionTok{mean}\NormalTok{(p\_i)}
+    
+    \CommentTok{\# passo CM2: maximização condicional em relação a alfa1 e beta1}
+\NormalTok{    somatorio\_p }\OtherTok{\textless{}{-}} \FunctionTok{sum}\NormalTok{(p\_i)}
+\NormalTok{    somatorio\_x\_p }\OtherTok{\textless{}{-}} \FunctionTok{sum}\NormalTok{(p\_i }\SpecialCharTok{*}\NormalTok{ X)}
+    \ControlFlowTok{if}\NormalTok{ (somatorio\_p }\SpecialCharTok{\textgreater{}} \DecValTok{0}\NormalTok{) \{}
+\NormalTok{      beta1\_novo }\OtherTok{\textless{}{-}}\NormalTok{ alfa1\_t }\SpecialCharTok{*}\NormalTok{ somatorio\_p }\SpecialCharTok{/}\NormalTok{ somatorio\_x\_p}
+\NormalTok{      C1 }\OtherTok{\textless{}{-}}\NormalTok{ (}\FunctionTok{sum}\NormalTok{(p\_i }\SpecialCharTok{*} \FunctionTok{log}\NormalTok{(X)) }\SpecialCharTok{/}\NormalTok{ somatorio\_p) }\SpecialCharTok{+} \FunctionTok{log}\NormalTok{(beta1\_novo)}
+\NormalTok{      alfa1\_novo }\OtherTok{\textless{}{-}} \FunctionTok{resolver\_alfa}\NormalTok{(C1, alfa1\_t)}
+\NormalTok{    \} }\ControlFlowTok{else}\NormalTok{ \{}
+\NormalTok{      beta1\_novo }\OtherTok{\textless{}{-}}\NormalTok{ beta1\_t}
+\NormalTok{      alfa1\_novo }\OtherTok{\textless{}{-}}\NormalTok{ alfa1\_t}
+\NormalTok{    \}}
+    
+    \CommentTok{\# passo CM3: maximização condicional em relação a alfa2 e beta2}
+\NormalTok{    somatorio\_1mp }\OtherTok{\textless{}{-}}\NormalTok{ n }\SpecialCharTok{{-}}\NormalTok{ somatorio\_p}
+\NormalTok{    somatorio\_x\_1mp }\OtherTok{\textless{}{-}} \FunctionTok{sum}\NormalTok{(X) }\SpecialCharTok{{-}}\NormalTok{ somatorio\_x\_p}
+    \ControlFlowTok{if}\NormalTok{ (somatorio\_1mp }\SpecialCharTok{\textgreater{}} \DecValTok{0}\NormalTok{) \{}
+\NormalTok{      beta2\_novo }\OtherTok{\textless{}{-}}\NormalTok{ alfa2\_t }\SpecialCharTok{*}\NormalTok{ somatorio\_1mp }\SpecialCharTok{/}\NormalTok{ somatorio\_x\_1mp}
+\NormalTok{      C2 }\OtherTok{\textless{}{-}}\NormalTok{ (}\FunctionTok{sum}\NormalTok{((}\DecValTok{1} \SpecialCharTok{{-}}\NormalTok{ p\_i) }\SpecialCharTok{*} \FunctionTok{log}\NormalTok{(X)) }\SpecialCharTok{/}\NormalTok{ somatorio\_1mp) }\SpecialCharTok{+} \FunctionTok{log}\NormalTok{(beta2\_novo)}
+\NormalTok{      alfa2\_novo }\OtherTok{\textless{}{-}} \FunctionTok{resolver\_alfa}\NormalTok{(C2, alfa2\_t)}
+\NormalTok{    \} }\ControlFlowTok{else}\NormalTok{ \{}
+\NormalTok{      beta2\_novo }\OtherTok{\textless{}{-}}\NormalTok{ beta2\_t}
+\NormalTok{      alfa2\_novo }\OtherTok{\textless{}{-}}\NormalTok{ alfa2\_t}
+\NormalTok{    \}}
+    
+    \CommentTok{\# atualização dos parâmetros}
+\NormalTok{    theta\_novo }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(delta\_novo, alfa1\_novo, alfa2\_novo, beta1\_novo, beta2\_novo)}
+    \FunctionTok{names}\NormalTok{(theta\_novo) }\OtherTok{\textless{}{-}} \FunctionTok{names}\NormalTok{(theta)}
+    
+    \CommentTok{\# critério de convergência}
+\NormalTok{    crit }\OtherTok{\textless{}{-}} \FunctionTok{max}\NormalTok{(}\FunctionTok{abs}\NormalTok{(theta\_novo }\SpecialCharTok{{-}}\NormalTok{ theta) }\SpecialCharTok{/} \FunctionTok{pmax}\NormalTok{(}\FunctionTok{abs}\NormalTok{(theta), }\FloatTok{1e{-}8}\NormalTok{))}
+\NormalTok{    theta }\OtherTok{\textless{}{-}}\NormalTok{ theta\_novo}
+\NormalTok{    historico[t, ] }\OtherTok{\textless{}{-}}\NormalTok{ theta}
+    
+    \ControlFlowTok{if}\NormalTok{ (crit }\SpecialCharTok{\textless{}}\NormalTok{ tol) }\ControlFlowTok{break}
+    
+\NormalTok{  \}}
+  
+  \FunctionTok{list}\NormalTok{(}\AttributeTok{estimativas =}\NormalTok{ theta, }\AttributeTok{iteracoes =}\NormalTok{ t, }\AttributeTok{historico =}\NormalTok{ historico[}\DecValTok{1}\SpecialCharTok{:}\NormalTok{t, ])}
+\NormalTok{\}}
+
+\CommentTok{\# gerando os dados}
+\NormalTok{mistura\_gama }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(n, delta, alfa1, alfa2, beta1, beta2) \{}
+\NormalTok{  Z }\OtherTok{\textless{}{-}} \FunctionTok{rbinom}\NormalTok{(n, }\DecValTok{1}\NormalTok{, delta)}
+  \FunctionTok{rgamma}\NormalTok{(n, }\AttributeTok{shape =} \FunctionTok{ifelse}\NormalTok{(Z }\SpecialCharTok{==} \DecValTok{1}\NormalTok{, alfa1, alfa2),}
+         \AttributeTok{rate =} \FunctionTok{ifelse}\NormalTok{(Z }\SpecialCharTok{==} \DecValTok{1}\NormalTok{, beta1, beta2))}
+\NormalTok{\}}
+
+\FunctionTok{set.seed}\NormalTok{(}\DecValTok{123456789}\NormalTok{)}
+
+\CommentTok{\# cenário 1: mistura bem separada}
+\NormalTok{parametros1 }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\AttributeTok{delta =} \FloatTok{0.6}\NormalTok{, }\AttributeTok{alfa1 =} \DecValTok{5}\NormalTok{, }\AttributeTok{alfa2 =} \DecValTok{2}\NormalTok{, }\AttributeTok{beta1 =} \DecValTok{1}\NormalTok{, }\AttributeTok{beta2 =} \FloatTok{0.2}\NormalTok{)}
+\NormalTok{dados1 }\OtherTok{\textless{}{-}} \FunctionTok{mistura\_gama}\NormalTok{(}\DecValTok{500}\NormalTok{, parametros1[}\StringTok{"delta"}\NormalTok{], parametros1[}\StringTok{"alfa1"}\NormalTok{],}
+\NormalTok{                        parametros1[}\StringTok{"alfa2"}\NormalTok{], parametros1[}\StringTok{"beta1"}\NormalTok{], parametros1[}\StringTok{"beta2"}\NormalTok{])}
+\NormalTok{resultado1 }\OtherTok{\textless{}{-}} \FunctionTok{ecm\_gama}\NormalTok{(dados1, }\FunctionTok{c}\NormalTok{(}\FloatTok{0.5}\NormalTok{, }\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{, }\FloatTok{0.5}\NormalTok{, }\FloatTok{0.5}\NormalTok{))}
+
+\CommentTok{\# cenário 2: mistura com maior influência da segunda distribuição}
+\NormalTok{parametros2 }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\AttributeTok{delta =} \FloatTok{0.2}\NormalTok{, }\AttributeTok{alfa1 =} \DecValTok{10}\NormalTok{, }\AttributeTok{alfa2 =} \DecValTok{5}\NormalTok{, }\AttributeTok{beta1 =} \DecValTok{2}\NormalTok{, }\AttributeTok{beta2 =} \FloatTok{0.5}\NormalTok{)}
+\NormalTok{dados2 }\OtherTok{\textless{}{-}} \FunctionTok{mistura\_gama}\NormalTok{(}\DecValTok{1000}\NormalTok{, parametros2[}\StringTok{"delta"}\NormalTok{], parametros2[}\StringTok{"alfa1"}\NormalTok{],}
+\NormalTok{                        parametros2[}\StringTok{"alfa2"}\NormalTok{], parametros2[}\StringTok{"beta1"}\NormalTok{], parametros2[}\StringTok{"beta2"}\NormalTok{])}
+\NormalTok{resultado2 }\OtherTok{\textless{}{-}} \FunctionTok{ecm\_gama}\NormalTok{(dados2, }\FunctionTok{c}\NormalTok{(}\FloatTok{0.5}\NormalTok{, }\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{, }\FloatTok{0.5}\NormalTok{, }\FloatTok{0.5}\NormalTok{))}
+
+\CommentTok{\# cenário 3: mistura com densidades sobrepostas}
+
+\NormalTok{parametros3 }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\AttributeTok{delta =} \FloatTok{0.5}\NormalTok{, }\AttributeTok{alfa1 =} \DecValTok{2}\NormalTok{, }\AttributeTok{alfa2 =} \DecValTok{3}\NormalTok{, }\AttributeTok{beta1 =} \DecValTok{1}\NormalTok{, }\AttributeTok{beta2 =} \FloatTok{1.2}\NormalTok{)}
+\NormalTok{dados3 }\OtherTok{\textless{}{-}} \FunctionTok{mistura\_gama}\NormalTok{(}\DecValTok{800}\NormalTok{, parametros3[}\StringTok{"delta"}\NormalTok{], parametros3[}\StringTok{"alfa1"}\NormalTok{],}
+\NormalTok{                        parametros3[}\StringTok{"alfa2"}\NormalTok{], parametros3[}\StringTok{"beta1"}\NormalTok{], parametros3[}\StringTok{"beta2"}\NormalTok{])}
+\NormalTok{resultado3 }\OtherTok{\textless{}{-}} \FunctionTok{ecm\_gama}\NormalTok{(dados3, }\FunctionTok{c}\NormalTok{(}\FloatTok{0.5}\NormalTok{, }\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{, }\FloatTok{0.5}\NormalTok{, }\FloatTok{0.5}\NormalTok{))}
+
+\NormalTok{resultados }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}
+\NormalTok{  Cenário }\OtherTok{=} \FunctionTok{c}\NormalTok{(}\StringTok{"Cenário 1: Separada"}\NormalTok{, }\StringTok{"Cenário 2: Desigual"}\NormalTok{, }\StringTok{"Cenário 3: Sobreposta"}\NormalTok{),}
+\NormalTok{  Iterações }\OtherTok{=} \FunctionTok{c}\NormalTok{(resultado1}\SpecialCharTok{$}\NormalTok{iteracoes, resultado2}\SpecialCharTok{$}\NormalTok{iteracoes, resultado3}\SpecialCharTok{$}\NormalTok{iteracoes),}
+  \FunctionTok{round}\NormalTok{(}\FunctionTok{rbind}\NormalTok{(resultado1}\SpecialCharTok{$}\NormalTok{estimativas, resultado2}\SpecialCharTok{$}\NormalTok{estimativas, resultado3}\SpecialCharTok{$}\NormalTok{estimativas), }\DecValTok{4}\NormalTok{)}
+\NormalTok{)}
+\FunctionTok{kable}\NormalTok{(resultados)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.3333}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1515}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.0909}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1061}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1061}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1061}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1061}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Cenário
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Iterações
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+delta
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+alfa1
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+alfa2
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+beta1
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+beta2
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Cenário 1: Separada & 55 & 0.5 & 2.2790 & 2.2790 & 0.3181 & 0.3181 \\
+Cenário 2: Desigual & 93 & 0.5 & 4.0214 & 4.0214 & 0.4477 & 0.4477 \\
+Cenário 3: Sobreposta & 57 & 0.5 & 2.3769 & 2.3769 & 1.0799 & 1.0799 \\
+\end{longtable}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{plot\_componentes }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(dados, parametros\_verdadeiros, parametros\_estimados, titulo) \{}
+\NormalTok{  x }\OtherTok{\textless{}{-}} \FunctionTok{seq}\NormalTok{(}\DecValTok{0}\NormalTok{, }\FunctionTok{max}\NormalTok{(dados), }\AttributeTok{length.out =} \DecValTok{500}\NormalTok{)}
+  
+  \CommentTok{\# densidades teóricas e estimadas}
+\NormalTok{  df }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}
+    \AttributeTok{x =}\NormalTok{ x,}
+    \AttributeTok{f1\_verdadeira =}\NormalTok{ parametros\_verdadeiros[}\StringTok{"delta"}\NormalTok{] }\SpecialCharTok{*} \FunctionTok{dgamma}\NormalTok{(x, parametros\_verdadeiros[}\StringTok{"alfa1"}\NormalTok{], parametros\_verdadeiros[}\StringTok{"beta1"}\NormalTok{]),}
+    \AttributeTok{f2\_verdadeira =}\NormalTok{ (}\DecValTok{1} \SpecialCharTok{{-}}\NormalTok{ parametros\_verdadeiros[}\StringTok{"delta"}\NormalTok{]) }\SpecialCharTok{*} \FunctionTok{dgamma}\NormalTok{(x, parametros\_verdadeiros[}\StringTok{"alfa2"}\NormalTok{], parametros\_verdadeiros[}\StringTok{"beta2"}\NormalTok{]),}
+    \AttributeTok{f1\_estimada =}\NormalTok{ parametros\_estimados[}\StringTok{"delta"}\NormalTok{] }\SpecialCharTok{*} \FunctionTok{dgamma}\NormalTok{(x, parametros\_estimados[}\StringTok{"alfa1"}\NormalTok{], parametros\_estimados[}\StringTok{"beta1"}\NormalTok{]),}
+    \AttributeTok{f2\_estimada =}\NormalTok{ (}\DecValTok{1} \SpecialCharTok{{-}}\NormalTok{ parametros\_estimados[}\StringTok{"delta"}\NormalTok{]) }\SpecialCharTok{*} \FunctionTok{dgamma}\NormalTok{(x, parametros\_estimados[}\StringTok{"alfa2"}\NormalTok{], parametros\_estimados[}\StringTok{"beta2"}\NormalTok{])}
+\NormalTok{  )}
+  
+  \FunctionTok{ggplot}\NormalTok{() }\SpecialCharTok{+}
+    \FunctionTok{geom\_histogram}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ dados, }\AttributeTok{y =} \FunctionTok{after\_stat}\NormalTok{(density)),}
+                   \AttributeTok{bins =} \DecValTok{40}\NormalTok{, }\AttributeTok{fill =} \StringTok{"grey85"}\NormalTok{, }\AttributeTok{color =} \StringTok{"white"}\NormalTok{, }\AttributeTok{alpha =} \FloatTok{0.6}\NormalTok{) }\SpecialCharTok{+}
+    
+    \FunctionTok{geom\_line}\NormalTok{(}\AttributeTok{data =}\NormalTok{ df, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ x, }\AttributeTok{y =}\NormalTok{ f1\_verdadeira, }\AttributeTok{color =} \StringTok{"C1 Verdadeira"}\NormalTok{),}
+              \AttributeTok{linetype =} \StringTok{"dashed"}\NormalTok{, }\AttributeTok{linewidth =} \DecValTok{1}\NormalTok{) }\SpecialCharTok{+}
+    \FunctionTok{geom\_line}\NormalTok{(}\AttributeTok{data =}\NormalTok{ df, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ x, }\AttributeTok{y =}\NormalTok{ f2\_verdadeira, }\AttributeTok{color =} \StringTok{"C2 Verdadeira"}\NormalTok{),}
+              \AttributeTok{linetype =} \StringTok{"dashed"}\NormalTok{, }\AttributeTok{linewidth =} \DecValTok{1}\NormalTok{) }\SpecialCharTok{+}
+    \FunctionTok{geom\_line}\NormalTok{(}\AttributeTok{data =}\NormalTok{ df, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ x, }\AttributeTok{y =}\NormalTok{ f1\_estimada, }\AttributeTok{color =} \StringTok{"C1 Estimada"}\NormalTok{),}
+              \AttributeTok{linewidth =} \FloatTok{1.1}\NormalTok{) }\SpecialCharTok{+}
+    \FunctionTok{geom\_line}\NormalTok{(}\AttributeTok{data =}\NormalTok{ df, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ x, }\AttributeTok{y =}\NormalTok{ f2\_estimada, }\AttributeTok{color =} \StringTok{"C2 Estimada"}\NormalTok{),}
+              \AttributeTok{linewidth =} \FloatTok{1.1}\NormalTok{) }\SpecialCharTok{+}
+    
+    \FunctionTok{scale\_color\_manual}\NormalTok{(}
+      \AttributeTok{name =} \StringTok{"Curvas de densidade"}\NormalTok{,}
+      \AttributeTok{values =} \FunctionTok{c}\NormalTok{(}\StringTok{"C1 Verdadeira"} \OtherTok{=} \StringTok{"blue"}\NormalTok{,}
+                 \StringTok{"C2 Verdadeira"} \OtherTok{=} \StringTok{"red"}\NormalTok{,}
+                 \StringTok{"C1 Estimada"} \OtherTok{=} \StringTok{"darkblue"}\NormalTok{,}
+                 \StringTok{"C2 Estimada"} \OtherTok{=} \StringTok{"darkred"}\NormalTok{)}
+\NormalTok{    ) }\SpecialCharTok{+}
+    
+    \FunctionTok{theme\_minimal}\NormalTok{() }\SpecialCharTok{+}
+    \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =}\NormalTok{ titulo, }\AttributeTok{x =} \StringTok{"x"}\NormalTok{, }\AttributeTok{y =} \StringTok{"Densidade"}\NormalTok{) }\SpecialCharTok{+}
+    \FunctionTok{theme}\NormalTok{(}\AttributeTok{plot.title =} \FunctionTok{element\_text}\NormalTok{(}\AttributeTok{size =} \DecValTok{12}\NormalTok{, }\AttributeTok{face =} \StringTok{"bold"}\NormalTok{),}
+          \AttributeTok{legend.title =} \FunctionTok{element\_text}\NormalTok{(}\AttributeTok{size =} \DecValTok{10}\NormalTok{),}
+          \AttributeTok{legend.text =} \FunctionTok{element\_text}\NormalTok{(}\AttributeTok{size =} \DecValTok{9}\NormalTok{))}
+\NormalTok{\}}
+
+
+\NormalTok{pairs }\OtherTok{=} \FunctionTok{c}\NormalTok{(}\AttributeTok{mfrow=}\FunctionTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{,}\DecValTok{3}\NormalTok{))}
+\FunctionTok{plot\_componentes}\NormalTok{(dados1, parametros1, resultado1}\SpecialCharTok{$}\NormalTok{estimativas, }\StringTok{"Cenário 1"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\pandocbounded{\includegraphics[keepaspectratio]{lista3_MCCDII_files/figure-latex/ex7-1.pdf}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{plot\_componentes}\NormalTok{(dados2, parametros2, resultado2}\SpecialCharTok{$}\NormalTok{estimativas, }\StringTok{"Cenário 2"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\pandocbounded{\includegraphics[keepaspectratio]{lista3_MCCDII_files/figure-latex/ex7-2.pdf}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{plot\_componentes}\NormalTok{(dados3, parametros3, resultado3}\SpecialCharTok{$}\NormalTok{estimativas, }\StringTok{"Cenário 3"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\pandocbounded{\includegraphics[keepaspectratio]{lista3_MCCDII_files/figure-latex/ex7-3.pdf}}
+
+\end{document}

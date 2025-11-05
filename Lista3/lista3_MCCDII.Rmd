@@ -6,9 +6,9 @@ execute:
   warning: false
   message: false
 output:
+  html_document: default
   pdf_document:
     keep_tex: true
-  html_document: default
 ---
 ```{r message=FALSE, warning=FALSE, include=FALSE}
 library(knitr)
@@ -232,14 +232,18 @@ $Î = \frac{1}{N}\sum_{i=1}^{N}C\cdot x_i^2$
 
 Amostra proposta $g(x)$:
 ```{r amostra-proposta-sir}
+set.seed(453
+         )
 dnormtrunc <- function(x, mu=0, sigma=1, a, b){
   d <- dnorm(x, mu, sigma)/( pnorm(b, mu, sigma) - pnorm(a, mu, sigma) )
 }
 
 rnormtrunc <- function(n, mu=0, sigma=1, a, b){
   us <- runif(n)
-  amostra <- qnorm( pnorm(a, mu, sigma) + 
-                      ( pnorm(b, mu, sigma) - pnorm(a, mu, sigma) )*us, mu, sigma )
+  p1 <- pnorm(a, mu, sigma)
+  p2 <- pnorm(b, mu, sigma)
+  p <- p1 + (p2-p1)*us
+  amostra <- qnorm( p, mean=mu, sd=sigma )
 }
 
 a=1
@@ -261,7 +265,7 @@ C <- 1 - pnorm(1)
 amostras_x <- rnormtrunc(n = N, mu = 0, sigma = 1, a = 1, b = Inf)
 
 estimativa_I <- mean(C * amostras_x^2)
-valor_exato <- dnorm(1)
+valor_exato <- dnorm(1) + (1 - pnorm(1))
 
 tabela <- data.frame(
   Metodo = c("Estimativa de Monte Carlo", "Valor Analitico"),

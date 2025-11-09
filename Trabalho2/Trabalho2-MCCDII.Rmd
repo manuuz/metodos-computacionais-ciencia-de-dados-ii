@@ -203,78 +203,6 @@ gera_tabela_comparativa <- function(res_am, res_amwg, valor_real) {
   return(tabela_final)
 }
 
-
-gera_graficos_comparativos <- function(res_am, res_amwg, valor_real, Sigma, burnin_frac = 0.5, titulo_base = "Comparação AM vs AMwG") {
-  # res_am, res_amwg: listas com elemento $amostras (matrix)
-  # valor_real: vetor de valores verdadeiros (length p)
-  # Sigma: matriz de covariância alvo (para densidade teórica marginals)
-  # burnin_frac: fração do chain que será descartada como burn-in (default 0.5)
-  
-  plot_por_metodo <- function(amostras, metodo_nome) {
-    burnin <- floor(nrow(amostras) * burnin_frac)
-    pos <- amostras[(burnin + 1):nrow(amostras), , drop = FALSE]
-    p <- ncol(pos)
-    if (p != length(valor_real)) stop("valor_real must match number of columns in amostras")
-    
-    # layout 2x2:
-    op <- par(no.readonly = TRUE)
-    on.exit(par(op), add = TRUE)
-    
-    # --- MUDANÇA 1: Adicionado 'oma' para criar uma margem externa no topo ---
-    par(mfrow = c(2, 2), 
-        mar = c(4.2, 4, 2.5, 1), 
-        oma = c(0, 0, 3, 0)) # 3 linhas de margem externa no topo
-    
-    # --- LOOP CORRIGIDO ---
-    # (As 'lines' da densidade foram movidas para *dentro* do loop)
-    for (j in 1:p) {
-      # TRAJETÓRIA
-      plot(
-        pos[, j],
-        type = "l",
-        main = paste("Trajetória da var", j),
-        xlab = "Iterações",
-        ylab = "",
-        col = "black"
-      )
-      abline(h = valor_real[j], col = "red", lty = 2, lwd = 2)
-      
-      # DENSIDADE com a teórica sobreposta
-      dens_est <- density(pos[, j])
-      ylim_max <- max(dens_est$y, dnorm(dens_est$x, mean = valor_real[j], sd = sqrt(Sigma[j, j])))
-      plot(
-        dens_est,
-        main = paste("Densidade da var", j),
-        xlab = "Valor",
-        ylab = "Densidade",
-        ylim = c(0, ylim_max * 1.05)
-      )
-      # Linha da densidade teórica
-      x_vals <- seq(min(dens_est$x), max(dens_est$x), length.out = 400)
-      lines(x_vals, dnorm(x_vals, mean = valor_real[j], sd = sqrt(Sigma[j, j])), col = "red", lwd = 2, lty = 2)
-    } # Fim do loop
-    
-    # --- MUDANÇA 2: 'mtext' agora usa 'outer = TRUE' ---
-    mtext(paste(titulo_base, "-", metodo_nome), 
-          outer = TRUE, # Escreve na margem externa
-          line = 1,     # Linha 1 (contando do topo)
-          cex = 1.2,    # Tamanho da fonte
-          font = 2)     # Negrito
-  }
-  
-  # Plot AM (one grid)
-  plot_por_metodo(res_am$amostras, "AM")
-  
-  # Pausa para ver o gráfico
-  if (interactive()) readline(prompt = "Pressione [enter] para ver os gráficos do AMwG...")
-  
-  # Plot AMwG (one grid)
-  plot_por_metodo(res_amwg$amostras, "AMwG")
-}
-
-```
-
-```{r novafuncao}
 gera_graficos_comparativos <- function(res_am, res_amwg, valor_real, Sigma, 
                                        burnin_frac = 0.5, titulo_base = "Comparação AM vs AMwG",
                                        nome_cenario = NULL) {
@@ -284,6 +212,13 @@ gera_graficos_comparativos <- function(res_am, res_amwg, valor_real, Sigma,
   # nome_cenario: string ("Cenário 1", "Cenário 2" ou "Cenário 3")
   
   require(mvtnorm)
+  
+  # nomes automáticos dos parâmetros
+      if (!is.null(nome_cenario) && grepl("3", nome_cenario, ignore.case = TRUE)) {
+        nomes_param <- c("beta0", "beta1", "beta2", "sigma^2")
+      } else {
+        nomes_param <- paste("Var", 1:p)
+      }
   
   # --- FUNÇÃO AUXILIAR PARA PLOT ---
   plot_por_metodo <- function(amostras, metodo_nome) {
@@ -300,7 +235,7 @@ gera_graficos_comparativos <- function(res_am, res_amwg, valor_real, Sigma,
       plot(
         pos[, j],
         type = "l",
-        main = paste("Trajetória da var", j),
+        main = bquote("Trajetória de" ~ .(nomes_param[j])),
         xlab = "Iterações",
         ylab = "",
         col = "blue"
@@ -336,11 +271,11 @@ gera_graficos_comparativos <- function(res_am, res_amwg, valor_real, Sigma,
       ylim_max <- max(dens_est$y, if (!is.null(dens_teorica)) max(dens_teorica) else 0)
       plot(
         dens_est,
-        main = paste("Densidade da var", j),
+        main = bquote("Densidade de " ~ .(nomes_param[j])),
         xlab = "Valor",
         ylab = "Densidade",
         ylim = c(0, ylim_max * 1.05)
-      )
+    )
       
       if (!is.null(dens_teorica)) {
         lines(x_vals, dens_teorica, col = "red", lwd = 2, lty = 2)
@@ -450,6 +385,10 @@ log_alvo_mistura <- function(x) {
   return(logdens)
 }
 
+res_am <- list(amostras = metropolis_adaptativo(log_alvo_mistura, x0, cov_inicial, num_iter))
+res_amwg <- metropolis_gibbs_adaptativo(log_alvo_mistura, x0, num_iter, batch_size = 50)
+
+####################### vale colocar no slide?
 conta_trocas_modos <- function(amostras) {
   mu1 <- c(-3, -3)
   mu2 <- c(3, 3)
@@ -462,18 +401,17 @@ conta_trocas_modos <- function(amostras) {
   c(n_trocas = trocas, prop_modo1 = prop1, prop_modo2 = prop2)
 }
 
-res_am <- list(amostras = metropolis_adaptativo(log_alvo_mistura, x0, cov_inicial, num_iter))
-res_amwg <- metropolis_gibbs_adaptativo(log_alvo_mistura, x0, num_iter, batch_size = 50)
-
 diag_am <- conta_trocas_modos(res_am$amostras[(floor(nrow(res_am$amostras)/2)+1):nrow(res_am$amostras), ])
 diag_amwg <- conta_trocas_modos(res_amwg$amostras[(floor(nrow(res_amwg$amostras)/2)+1):nrow(res_amwg$amostras), ])
-print(diag_am); print(diag_amwg)
+print(diag_am)
+print(diag_amwg)
+######################
 
 # Use suas funções de resumo (para mistura, passe valor_real = c(NA, NA) ou c(0,0) apenas para compatibilidade)
 tabela_comp_mistura <- gera_tabela_comparativa(res_am, res_amwg, valor_real = c(0,0))
 print(tabela_comp_mistura)
 gera_graficos_comparativos(res_am, res_amwg, valor_real = c(0,0), Sigma = diag(2), burnin_frac = 0.5,
-                           titulo_base = "Mistura Bimodal", nome_cenario = "Cenário 2")
+                           titulo_base = "Mistura Bimodal Multivariada", nome_cenario = "Cenário 2")
 ```
 
 ## Cenário 3 — Modelo Bayesiano Multivariado
@@ -549,6 +487,6 @@ tabela_reg <- gera_tabela_comparativa(res_am_reg, res_amwg_reg, valor_real_reg)
 print(tabela_reg)
 gera_graficos_comparativos(res_am_reg, res_amwg_reg, valor_real_reg, Sigma =
                              diag(length(valor_real_reg)), burnin_frac = 0.5,
-                           titulo_base = "Regressão Bayesiana (posterior)",
+                           titulo_base = "Regressão Bayesiana (posteriori)",
                            nome_cenario = "Cenário 3")
 ```

@@ -7,6 +7,8 @@ output: pdf_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(knitr)
 ```
 
 # Questão 01
@@ -273,6 +275,48 @@ set.seed(123456789)
 for (n in tamanhos) {
   ep[[as.character(n)]] <- simulacao(n, M, B, r, p)
 }
+
+
+dados_plot <- data.frame()
+for (n_str in names(ep)) {
+  res <- ep[[n_str]]
+  n <- res$n[1]  # apenas o valor de n (é constante dentro de cada data.frame)
+  ep_real <- res$EP_Verdadeiro[1]
+  
+  df_np <- data.frame(
+    n = factor(n),
+    Metodo = "Não-Paramétrico",
+    EP_Estimado = res$EP_NP,
+    EP_Verdadeiro = ep_real
+  )
+  
+  df_p <- data.frame(
+    n = factor(n),
+    Metodo = "Paramétrico (ajuste ruim)",
+    EP_Estimado = res$EP_P,
+    EP_Verdadeiro = ep_real
+  )
+  
+  dados_plot <- rbind(dados_plot, df_np, df_p)
+}
+
+ggplot(dados_plot, aes(x = EP_Estimado, fill = Metodo)) +
+  geom_density(alpha = 0.6) +
+  facet_wrap(~ n, scales = "free_x", labeller = label_both) +
+  geom_vline(aes(xintercept = EP_Verdadeiro),
+             linetype = "dashed", color = "black") +
+  scale_fill_manual(values = c(
+    "Não-Paramétrico" = "blue",
+    "Paramétrico (ajuste ruim)" = "red"
+  )) +
+  labs(
+    title = "Comparação dos Estimadores de Erro Padrão por Bootstrap",
+    subtitle = "Linha tracejada: erro padrão real",
+    x = "EP Estimado",
+    y = "Densidade"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "bottom")
 ```
 
 O bootstrap não paramétrico apresenta um erro padrão muito próximo do EP verdadeiro em todos os tamanhos amostrais. Ao reamostrar diretamente dos dados, não faz suposições sobre a distribuição (além de i.i.d.) e por isso reflete de forma fiel a variabilidade dos dados amostrais. Já o bootstrap paramétrico subestima o erro padrão em todos os tamanhos amostrais, consequência da má especificação; mesmo com $n$ grande, o método paramétrico mas incorreto leva a uma inferência equivocada.

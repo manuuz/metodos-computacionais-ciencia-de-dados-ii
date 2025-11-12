@@ -55,42 +55,43 @@ for (n in tamanhos) {
   ep[[as.character(n)]] <- simulacao(n, M, B, r, p)
 }
 
-################# ALTERAR
 dados_plot <- data.frame()
-for (n_str in names(resultados_se)) {
-  res <- resultados_se[[n_str]]
-  n <- res$n
+for (n_str in names(ep)) {
+  res <- ep[[n_str]]
+  n <- res$n[1]  # apenas o valor de n (é constante dentro de cada data.frame)
+  ep_real <- res$EP_Verdadeiro[1]
   
-  df_npar <- data.frame(
+  df_np <- data.frame(
     n = factor(n),
-    Metodo = "Nao-Parametrico",
-    SE_Estimado = res$se_npar,
-    SE_Verdadeiro = res$se_verdadeiro
+    Metodo = "Não-Paramétrico",
+    EP_Estimado = res$EP_NP,
+    EP_Verdadeiro = ep_real
   )
   
-  df_par <- data.frame(
+  df_p <- data.frame(
     n = factor(n),
-    Metodo = "Parametrico (Poisson - Mal Especificado)",
-    SE_Estimado = res$se_par_mispec,
-    SE_Verdadeiro = res$se_verdadeiro
+    Metodo = "Paramétrico (ajuste ruim)",
+    EP_Estimado = res$EP_P,
+    EP_Verdadeiro = ep_real
   )
   
-  dados_plot <- rbind(dados_plot, df_npar, df_par)
+  dados_plot <- rbind(dados_plot, df_np, df_p)
 }
 
-# Gráfico de Densidade Comparando os Estimadores de SE
-p <- ggplot(dados_plot, aes(x = SE_Estimado, fill = Metodo)) +
+ggplot(dados_plot, aes(x = EP_Estimado, fill = Metodo)) +
   geom_density(alpha = 0.6) +
   facet_wrap(~ n, scales = "free_x", labeller = label_both) +
-  geom_vline(aes(xintercept = SE_Verdadeiro), linetype = "dashed", color = "black") +
-  scale_fill_manual(values = c("Nao-Parametrico" = "blue", "Parametrico (Poisson - Mal Especificado)" = "red")) +
+  geom_vline(aes(xintercept = EP_Verdadeiro),
+             linetype = "dashed", color = "black") +
+  scale_fill_manual(values = c(
+    "Não-Paramétrico" = "blue",
+    "Paramétrico (ajuste ruim)" = "red"
+  )) +
   labs(
-    title = "Comparação dos Estimadores de Erro Padrão (SE) por Bootstrap",
-    subtitle = "Dados Reais: Binomial Negativa. BP com Má Especificação: Poisson. Linha tracejada: SE Real.",
+    title = "Comparação dos Estimadores de Erro Padrão por Bootstrap",
+    subtitle = "Linha tracejada: erro padrão real",
     x = "EP Estimado",
     y = "Densidade"
   ) +
   theme_minimal() +
   theme(legend.position = "bottom")
-
-print(p)

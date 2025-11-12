@@ -32,7 +32,7 @@ a) $X \sim N(0, \sigma^2)$
 b) $X \sim \text{Gama}(2, 5)$  
 c) Outra distribuição de sua escolha.
 
-# Questão 03 - COLOCAR CÓDIGO
+# Questão 03
 
 Implemente funções para calcular os intervalos de confiança bootstrap studentizado e BCa. Compare o resultado fornecido com o intervalo construído com as funções do pacote `boot`.
 
@@ -58,8 +58,25 @@ $$
 
 ### Implementação do código
 
-```{r}
-
+```{r ex3-student}
+ic_bootstrap_studentizado <- function(x, stat = mean, B = 1000, R = 200, alpha = 0.05) {
+  n <- length(x)
+  theta_chapeu <- stat(x)
+  ep_chapeu <- sd(replicate(R, stat(sample(x, n, replace = TRUE))))
+  
+  t_boot <- numeric(B)
+  for (b in 1:B) {
+    x_estrela <- sample(x, n, replace = TRUE)
+    theta_b <- stat(x_estrela)
+    ep_b <- sd(replicate(R, stat(sample(x_estrela, n, replace = TRUE))))
+    t_boot[b] <- (theta_b - theta_chapeu) / ep_b
+  }
+  
+  t_quant <- quantile(t_boot, c(alpha / 2, 1 - alpha / 2))
+  ic <- c(theta_chapeu - t_quant[2] * ep_chapeu,
+          theta_chapeu - t_quant[1] * ep_chapeu)
+  return(ic)
+}
 ```
 
 **IC Bootstrap BCa**
@@ -100,192 +117,165 @@ onde $\bar{\theta}_{[\cdot]} = \frac{1}{n} \sum_{i=1}^n \hat{\theta}_{[-i]}$.
 
 ### Implementação do código
 
-```{r}
+```{r ex3-bca}
+ic_bootstrap_bca <- function(x, stat = mean, B = 1000, alpha = 0.05) {
+  n <- length(x)
+  theta_chapeu <- stat(x)
+  
+  # bootstrap
+  thetas <- replicate(B, stat(sample(x, n, replace = TRUE)))
+  
+  # jackknife
+  jack <- sapply(1:n, function(i) stat(x[-i]))
+  theta_barra <- mean(jack)
+  
+  # parâmetros BCa
+  z0 <- qnorm(mean(thetas < theta_chapeu))
+  a <- sum((theta_barra - jack)^3) / (6 * (sum((theta_barra - jack)^2))^(3/2))
 
+  z_alfa <- qnorm(c(alpha / 2, 1 - alpha / 2))
+  alfa <- pnorm(z0 + (z0 + z_alfa) / (1 - a * (z0 + z_alfa)))
+  
+  ic <- quantile(thetas, probs = alfa)
+  
+  return(ic)
+}
 ```
 
 **Comparação com o Pacote `boot`**
 
 ### Implementação do código
 
-```{r}
+```{r ex3-boot}
+library(boot)
+set.seed(123456789)
+x <- rnorm(30, mean = 5, sd = 2)
 
+# necessário para "stud"
+
+metricas_boot_student <- function(data, idx) {
+  d <- data[idx]
+  m <- mean(d)
+  se <- sd(d) / sqrt(length(d))
+  return(c(mean = m, se = se))
+}
+
+# retorna média e erro padrão
+boot_obj <- boot(x, statistic = metricas_boot_student, R = 1000, sim = "ordinary", stype = "i")
+
+
+ic_student <- ic_bootstrap_studentizado(x, stat = mean, B = 500, R = 100)
+ic_bca <- ic_bootstrap_bca(x, stat = mean, B = 1000)
+
+# funções do pacote
+boot_student <- boot.ci(boot_obj, type = "stud")
+boot_bca <- boot.ci(boot_obj, type = "bca")
+
+resultado <- data.frame(
+  Metodo = c("Studentizado (manual)",
+             "Studentizado (pacote)",
+             "BCa (manual)",
+             "BCa (pacote)"),
+  IC_Inferior = c(
+    round(ic_student[1], 4),
+    round(as.numeric(boot_student$student[,4]), 4),
+    round(ic_bca[1], 4),
+    round(boot_bca$bca[,4], 4)
+  ),
+  IC_Superior = c(
+    round(ic_student[2], 4),
+    round(as.numeric(boot_student$student[,5]), 4),
+    round(ic_bca[2], 4),
+    round(boot_bca$bca[,5], 4)
+  )
+)
+
+kable(resultado)
 ```
 
-Conclusão:
+Os resultados ficaram próximos, o que confirma que o código está performando bem.
 
 # QUestão 04
 
 Faça um estudo de Monte Carlo para comparar a probabilidade de cobertura dos intervalos de confiança bootstrap para a média populacional gerando amostras das distribuições Normal e Lognormal. Para as duas distribuições, utilize tamanhos amostrais iguais a 20, 50 e 150. Considere 4 métodos bootstrap de sua escolha para a obtenção dos intervalos de confiança e também compare com a probabilidade de cobertura do intervalo paramétrico com a $t$-Student.
 
-# Questão 05 - CORRIGIR
+# Questão 05
 
 Compare os bootstraps paramétrico e não paramétrico na estimação do erro padrão de $\bar{X}$ para estimar $E[X]$ quando os dados são gerados da distribuição binomial negativa. No bootstrap paramétrico, assuma que os dados são oriundos da distribuição Poisson para avaliar o efeito da má especificação da distribuição populacional. Utilize 3 valores diferentes para tamanho amostral.
 
-O seu pedido requer a implementação de um estudo de simulação Monte Carlo em R para comparar o desempenho dos métodos Bootstrap Paramétrico (BP, com má especificação intencional) e Não Paramétrico (BNP) na estimação do erro padrão (EP) da média amostral ($\bar{X}$), quando os dados subjacentes seguem uma distribuição **Binomial Negativa**.
+## Solução
 
-O método **Bootstrap Não Paramétrico (BNP)** estima a distribuição amostral reamostrando a partir da distribuição empírica ($F_n$), ou seja, amostrando com reposição diretamente dos dados observados. Já o **Bootstrap Paramétrico (BP)** assume uma forma paramétrica ($F(\mathbf{x}, \hat{\theta})$) e simula a partir dessa distribuição estimada. O EP é estimado como o desvio padrão das réplicas Bootstrap.
+O bootstrap não paramétrico estima a distribuição amostral reamostrando a partir da distribuição empírica (com reposição). Já o bootstrap paramétrico assume uma forma paramétrica e simula a partir dessa distribuição estimada.
 
-Neste estudo, o desvio da especificação correta é crucial:
-1.  **Distribuição Verdadeira:** Binomial Negativa (NB).
-2.  **Modelo Paramétrico Utilizado (Má Especificação):** Poisson.
+### Passo a passo
 
-### Implementação em R
+1. Defina os parâmetros da simulação: a distribuição verdadeira (no caso, Binomial Negativa com $r=4$, $p=0.75$) e seus parâmetros, incluindo a variância e o erro padrão verdadeiro. Serão considerados três tamanhos amostrais: $n = 30, 100, 500$.
 
-Utilizaremos o princípio da simulação Monte Carlo para avaliar a distribuição do estimador de erro padrão. Geramos $M$ amostras originais (Binomial Negativa) e, para cada uma, calculamos $B$ réplicas Bootstrap para obter as estimativas do EP.
+2. Para cada tamanho amostral e para cada uma das $M = 1000$ iterações, gere uma amostra da Binomial Negativa, calcule o erro padrão via bootstrap não paramétrico, reamostrando a própria amostra, além do erro padrão via bootstrap paramétrico assumindo incorretamente uma outra distribuição (no caso, Poisson).
 
-#### Configuração e Simulação
+3. Para cada $n$, guarde os erros padrão verdadeiros, e os estimados pelos métodos BNP e BP e compare.
 
-A distribuição Binomial Negativa (NB) é tipicamente utilizada para dados de contagem sobredispersos. Para fins de simulação, utilizaremos a propriedade de que a NB pode ser vista como uma mistura de distribuições Poisson onde a taxa $\lambda$ segue uma distribuição Gama.
+### Implementação do código
 
-**Parâmetros Escolhidos:**
-*   Binomial Negativa (NB): $r=4$ (tamanho) e $p=0.75$ (probabilidade).
-*   Média Real ($E[X]$): $r(1-p)/p \approx 1.333$.
-*   Número de Simulações Monte Carlo ($M$): 1000.
-*   Número de Réplicas Bootstrap ($B$): 2000.
-*   Tamanhos Amostrais ($n$): 30, 100 e 500.
+```{r ex5}
+M <- 1000
+B <- 2000
+tamanhos <- c(30, 100, 500) 
 
-```R
-# Pacotes necessários
-library(stats) 
+r <- 4 
+p <- 0.75 
 
-# --- 1. Parâmetros e Funções de Cálculo ---
-M <- 1000  # Repetições de Monte Carlo
-B <- 2000  # Repetições do Bootstrap
-tamanhos_n <- c(30, 100, 500) 
+var_x <- r * (1 - p) / (p^2) 
 
-# Parâmetros da Distribuição Verdadeira (Binomial Negativa)
-r_true <- 4 
-p_true <- 0.75 
-# Variância de X para a NB(r=4, p=0.75)
-Var_X_true <- r_true * (1 - p_true) / (p_true^2) 
-
-# Função para calcular o SE verdadeiro de X_barra
-se_true_func <- function(n) {
-  sqrt(Var_X_true / n)
+# calcula o erro padrão verdadeiro de X barra
+calcula_ep <- function(n) {
+  sqrt(var_x / n)
 }
 
-resultados_se <- list()
+ep <- list()
 
-# --- 2. Estudo de Simulação Monte Carlo ---
-run_simulation <- function(n_size, M, B, r_true, p_true) {
+simulacao <- function(tamanho_amostral, M, B, r, p) {
   
-  se_npar <- numeric(M) # Bootstrap Não-Paramétrico
-  se_par_mispec <- numeric(M) # Bootstrap Paramétrico (Poisson)
+  ep_np <- numeric(M) # não paramétrico
+  ep_p <- numeric(M) # paramétrico
   
-  se_verdadeiro <- se_true_func(n_size)
-  
-  cat(sprintf("Rodando para n = %d (SE Real: %.4f)...\n", n_size, se_verdadeiro))
-  
+  ep_verdadeiro <- calcula_ep(tamanho_amostral)
+
   for (i in 1:M) {
-    # 1. Geração da Amostra Original (Binomial Negativa)
-    amostra <- rnbinom(n_size, size = r_true, prob = p_true)
+    # geração da amostra real
+    amostra <- rnbinom(tamanho_amostral, size = r, prob = p)
     
-    # ----- Bootstrap Não-Paramétrico (BNP) -----
-    mean_boot_npar <- replicate(B, {
-      mean(sample(amostra, n_size, replace = TRUE))
+    # não paramétrico
+    media_np <- replicate(B, {
+      mean(sample(amostra, tamanho_amostral, replace = TRUE))
     })
-    se_npar[i] <- sd(mean_boot_npar)
+    ep_np[i] <- sd(media_np)
     
-    # ----- Bootstrap Paramétrico (BP - Poisson Mal Especificado) -----
-    # Estimar lambda (MLE para Poisson é X_barra)
-    lambda_hat <- mean(amostra)
+    # paramétrico (mal especificado)
+    lambda_chapeu <- mean(amostra)
     
-    # Gerar B réplicas da distribuição Poisson(lambda_hat)
-    mean_boot_par_mispec <- replicate(B, {
-      # Utilizamos rpois para reamostrar da distribuição Poisson
-      mean(rpois(n_size, lambda = lambda_hat))
+    media_p <- replicate(B, {
+      mean(rpois(tamanho_amostral, lambda = lambda_chapeu))
     })
-    se_par_mispec[i] <- sd(mean_boot_par_mispec)
+    ep_p[i] <- sd(media_p)
   }
   
-  return(list(
-    n = n_size,
-    se_verdadeiro = se_verdadeiro,
-    se_npar = se_npar,
-    se_par_mispec = se_par_mispec
+  return(data.frame(
+    n = tamanho_amostral,
+    EP_Verdadeiro = ep_verdadeiro,
+    EP_NP = ep_np,
+    EP_P = ep_p
   ))
+  
 }
 
-# --- 3. Execução para os 3 Tamanhos Amostrais ---
-set.seed(42)
-for (n in tamanhos_n) {
-  resultados_se[[as.character(n)]] <- run_simulation(n, M, B, r_true, p_true)
+set.seed(123456789)
+for (n in tamanhos) {
+  ep[[as.character(n)]] <- simulacao(n, M, B, r, p)
 }
 ```
 
-#### Comparação de Resultados
-
-Com base nos resultados do estudo de Monte Carlo, comparamos o EP médio estimado por cada método com o EP verdadeiro.
-
-| $n$ | EP Verdadeiro ($\sqrt{Var[X]/n}$) | EP Médio BNP | EP Médio BP (Poisson) |
-| :---: | :---: | :---: | :---: |
-| 30 | **0.2435** | 0.2443 | 0.2198 |
-| 100 | **0.1332** | 0.1334 | 0.1200 |
-| 500 | **0.0596** | 0.0597 | 0.0537 |
-
-**Interpretação da Comparação:**
-
-1.  **Bootstrap Não Paramétrico (BNP):** O EP médio estimado pelo BNP é consistentemente **muito próximo** do EP verdadeiro em todos os tamanhos amostrais. O BNP, ao reamostrar diretamente dos dados, não faz suposições sobre a distribuição (além de i.i.d.) e, portanto, reflete fielmente a variabilidade da Binomial Negativa subjacente.
-2.  **Bootstrap Paramétrico (BP - Poisson Mis-especificado):** O EP estimado pelo BP utilizando o modelo Poisson é **significativamente subestimado** (aproximadamente 10-15% abaixo do valor real) em todos os tamanhos amostrais.
-    *   **Explicação da Má Especificação:** A Binomial Negativa (verdadeira distribuição) possui maior variância do que a Poisson (assumida), pois $Var[\text{NB}] > E[\text{NB}]$. Já na Poisson, $Var[\text{Poisson}] = E[\text{Poisson}] = \lambda$. Ao usar a média amostral $\bar{X}$ (que é o estimador de $\lambda$) para gerar réplicas Poisson, estamos impondo uma variância Bootstrap menor (igual à média) do que a variância real da população, o que leva a um EP subestimado.
-3.  **Efeito do Tamanho Amostral ($n$):**
-    *   À medida que $n$ aumenta (de 30 para 500), a estimativa de $\lambda$ se torna mais precisa, mas o viés no método BP persiste. O BP com má especificação não melhora em termos de acurácia, apenas se torna consistentemente enviesado em direção à variância incorreta imposta pelo modelo Poisson.
-    *   O BNP continua sendo o método preferencial neste caso, pois, mesmo com $n$ grande, o BP incorreto leva a uma inferência errônea.
-
-#### Visualização da Distribuição dos Estimadores de EP
-
-A seguir, geramos gráficos para ilustrar as distribuições empíricas do EP estimado pelos dois métodos em comparação com o EP verdadeiro, utilizando o pacote `ggplot2` (não estritamente suportado pelas fontes, mas útil para visualização).
-
-```R
-# --- 4. Plotagem dos Resultados ---
-library(ggplot2)
-library(dplyr)
-
-# Reestrutura os dados para plotagem
-dados_plot <- data.frame()
-for (n_str in names(resultados_se)) {
-  res <- resultados_se[[n_str]]
-  n <- res$n
-  
-  df_npar <- data.frame(
-    n = factor(n),
-    Metodo = "Nao-Parametrico",
-    SE_Estimado = res$se_npar,
-    SE_Verdadeiro = res$se_verdadeiro
-  )
-  
-  df_par <- data.frame(
-    n = factor(n),
-    Metodo = "Parametrico (Poisson - Mal Especificado)",
-    SE_Estimado = res$se_par_mispec,
-    SE_Verdadeiro = res$se_verdadeiro
-  )
-  
-  dados_plot <- rbind(dados_plot, df_npar, df_par)
-}
-
-# Gráfico de Densidade Comparando os Estimadores de SE
-p <- ggplot(dados_plot, aes(x = SE_Estimado, fill = Metodo)) +
-  geom_density(alpha = 0.6) +
-  facet_wrap(~ n, scales = "free_x", labeller = label_both) +
-  geom_vline(aes(xintercept = SE_Verdadeiro), linetype = "dashed", color = "black") +
-  scale_fill_manual(values = c("Nao-Parametrico" = "blue", "Parametrico (Poisson - Mal Especificado)" = "red")) +
-  labs(
-    title = "Comparação dos Estimadores de Erro Padrão (SE) por Bootstrap",
-    subtitle = "Dados Reais: Binomial Negativa. BP com Má Especificação: Poisson. Linha tracejada: SE Real.",
-    x = "EP Estimado",
-    y = "Densidade"
-  ) +
-  theme_minimal() +
-  theme(legend.position = "bottom")
-
-print(p)
-```
-
-**Conclusão:**
-
-O gráfico e a tabela de comparação demonstram claramente que o **Bootstrap Não Paramétrico** (curvas azuis, ou "NP") é um estimador de EP **mais acurado** neste cenário, pois suas estimativas se centram consistentemente no valor real (linha tracejada). O **Bootstrap Paramétrico** (curvas vermelhas, ou "P") com a má especificação (Poisson em vez de Binomial Negativa) **subestima** o erro padrão devido à incapacidade do modelo Poisson de capturar a sobredispersão inerente à distribuição Binomial Negativa, ilustrando o risco de usar um modelo paramétrico incorreto.
+O bootstrap não paramétrico apresenta um erro padrão muito próximo do EP verdadeiro em todos os tamanhos amostrais. Ao reamostrar diretamente dos dados, não faz suposições sobre a distribuição (além de i.i.d.) e por isso reflete de forma fiel a variabilidade dos dados amostrais. Já o bootstrap paramétrico subestima o erro padrão em todos os tamanhos amostrais, consequência da má especificação; mesmo com $n$ grande, o método paramétrico mas incorreto leva a uma inferência equivocada.
 
 # Questão 06
 

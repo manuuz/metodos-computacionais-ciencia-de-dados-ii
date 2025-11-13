@@ -1,47 +1,30 @@
-# --- 1. Funcao do Teste Bootstrap de Media (Baseado em 3.6.2) ---
-teste_boot_1mean <- function(z, mu0, B = 1000) {
+teste_boot <- function(z, mu0, B = 1000) {
   n <- length(z)
   
-  # 1. Estatística t observada (t_obs)
-  # Usamos a estatística t do teste padrão para a amostra original
   teste_t_obs <- t.test(z, mu = mu0)
   t_obs <- teste_t_obs$statistic
   
-  # 2. Gerar amostras Bootstrap centradas sob H0 (3.6.2)
-  # A distribuicao empirica e transladada para ter media mu0.
+  # translação para ter média mu0.
   z_til <- z - mean(z) + mu0
   
-  t_ast <- numeric(B)
+  t_estrela <- numeric(B)
   
   for(b in 1:B){
-    # Amostra bootstrap com reposicao da amostra centrada
-    z_ast <- sample(z_til, size = n, replace = TRUE)
-    
-    # Calculamos a estatistica t* na amostra centrada para encontrar a distribuicao sob H0
-    # t* = (media_z_ast - mu0) / (se_z_ast)
-    
-    # O teste t.test em R calcula o denominador da estatística como sd(z_ast) / sqrt(n)
-    # Note que mean(z_ast) deveria ser proximo de mu0, mas usamos a expressao de t.test
-    
-    # Usamos o resultado do t.test, que e a estatistica t-studentizada
-    t_ast[b] <- t.test(z_ast, mu = mu0)$statistic
+    # amostra centrada em mu0
+    z_estrela <- sample(z_til, size = n, replace = TRUE)
+    t_estrela[b] <- t.test(z_estrela, mu = mu0)$statistic
   }
   
-  # 3. Calculo do p-valor bootstrap
-  # O p-valor e a proporcao de estatisticas t* que sao mais extremas que t_obs (3.6.2)
-  p_valor <- ( sum(t_ast >= abs(t_obs)) + sum(t_ast <= -abs(t_obs)) ) / B
+  p_valor <- ( sum(t_estrela >= abs(t_obs)) + sum(t_estrela <= -abs(t_obs)) ) / B
   
   return(p_valor)
 }
 
-# --- 2. Funcao Principal do Estudo Monte Carlo para Poder ---
-estudo_poder_mc <- function(mu_vec, n, M, B, alpha) {
+poder_mc <- function(mu_vec, n, M, B, alfa) {
   
   num_mu <- length(mu_vec)
   poder_t <- numeric(num_mu)
   poder_boot <- numeric(num_mu)
-  
-  # O teste e H0: mu = 2 (mu0 = 2)
   mu0 <- 2
   
   for (i in 1:num_mu) {
@@ -52,28 +35,21 @@ estudo_poder_mc <- function(mu_vec, n, M, B, alpha) {
     rejeicoes_t <- 0
     rejeicoes_boot <- 0
     
-    # Loop Monte Carlo (M replicacoes)
+    # Monte Carlo
     for (m in 1:M) {
-      
-      # 1. Geracao da Amostra (violando a normalidade)
-      # Gerar dados da Chi-quadrado com E[X] = mu_real = nu_real
       dados_mc <- rchisq(n, df = nu_real)
       
-      # --- A. Teste t padrao ---
-      # O teste t e o teste de comparacao, que tem sua hipotese de normalidade violada.
-      teste_t <- t.test(dados_mc, mu = mu0, alternative = "two.sided")
-      if (teste_t$p.value <= alpha) {
+      p_valor_t <- t.test(dados_mc, mu = mu0, alternative = "two.sided")
+      if (p_valor_t$p.value <= alfa) {
         rejeicoes_t <- rejeicoes_t + 1
       }
       
-      # --- B. Teste Bootstrap ---
-      p_valor_boot <- teste_boot_1mean(dados_mc, mu0 = mu0, B = B)
-      if (p_valor_boot <= alpha) {
+      p_valor_boot <- teste_boot(dados_mc, mu0 = mu0, B = B)
+      if (p_valor_boot <= alfa) {
         rejeicoes_boot <- rejeicoes_boot + 1
       }
     }
     
-    # Estimativa da Funcao Poder (2.3)
     poder_t[i] <- rejeicoes_t / M
     poder_boot[i] <- rejeicoes_boot / M
   }
@@ -85,50 +61,73 @@ estudo_poder_mc <- function(mu_vec, n, M, B, alpha) {
   ))
 }
 
-# --- 3. Execucao do Estudo Monte Carlo ---
-
-# Valores de mu (nu) para avaliar a funcao poder, incluindo o valor nulo mu=2
 mu_valores <- c(1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0)
-N_amostral <- 30
-M_mc <- 5000
-B_boot <- 1000
-Alpha_nivel <- 0.05
+M <- 500
+B <- 1000
+alfa <- 0.05
 
-set.seed(42)
-resultados_poder <- estudo_poder_mc(
+set.seed(123456789)
+
+resultados1 <- poder_mc(
   mu_vec = mu_valores,
-  n = N_amostral,
-  M = M_mc,
-  B = B_boot,
-  alpha = Alpha_nivel
+  n = 30,
+  M = M,
+  B = B,
+  alfa = alfa
 )
 
-# Imprimir resultados
-print("Resultados da Funcao Poder (M=5000, n=30, Populacao: Chi-quadrado)")
-print(round(resultados_poder, 4))
+kable(resultados1)
 
-# --- 4. Plotagem da Funcao Poder ---
-library(ggplot2)
-
-df_plot <- data.frame(
-  mu_real = resultados_poder$mu_real,
-  Poder = c(resultados_poder$Poder_T, resultados_poder$Poder_Bootstrap),
+df_plot1 <- data.frame(
+  mu_real = resultados1$mu_real,
+  Poder = c(resultados1$Poder_T, resultados1$Poder_Bootstrap),
   Metodo = factor(rep(c("Teste T (Violado)", "Bootstrap"), each = length(mu_valores)))
 )
 
-p_power <- ggplot(df_plot, aes(x = mu_real, y = Poder, color = Metodo)) +
+resultados2 <- poder_mc(
+  mu_vec = mu_valores,
+  n = 100,
+  M = M,
+  B = B,
+  alfa = alfa
+)
+
+kable(resultados2)
+
+par(mfrow=c(1,2))
+
+df_plot2 <- data.frame(
+  mu_real = resultados2$mu_real,
+  Poder = c(resultados2$Poder_T, resultados2$Poder_Bootstrap),
+  Metodo = factor(rep(c("Teste T (Violado)", "Bootstrap"), each = length(mu_valores)))
+)
+
+ggplot(df_plot1, aes(x = mu_real, y = Poder, color = Metodo)) +
   geom_line(size = 1) +
   geom_point(size = 3) +
   geom_vline(xintercept = 2, linetype = "dashed", color = "black", alpha = 0.7) +
-  geom_hline(yintercept = Alpha_nivel, linetype = "dotted", color = "gray50") +
+  geom_hline(yintercept = alfa, linetype = "dotted", color = "gray50") +
   scale_y_continuous(limits = c(0, 1)) +
   labs(
-    title = "Função Poder Estimada: Teste T vs. Bootstrap",
-    subtitle = "População: Qui-quadrado (Assimetria viola a suposição de Normalidade)",
-    x = expression(paste("Média Populacional Real (", mu, ")")),
-    y = "Poder (P(Rejeitar H0))"
+    title = "Poder: Teste T vs. Bootstrap (n = 30)",
+    subtitle = "População Qui-quadrado",
+    x = expression(paste(mu)),
+    y = "Poder"
   ) +
   theme_minimal() +
   theme(legend.position = "bottom")
 
-print(p_power)
+ggplot(df_plot2, aes(x = mu_real, y = Poder, color = Metodo)) +
+  geom_line(size = 1) +
+  geom_point(size = 3) +
+  geom_vline(xintercept = 2, linetype = "dashed", color = "black", alpha = 0.7) +
+  geom_hline(yintercept = alfa, linetype = "dotted", color = "gray50") +
+  scale_y_continuous(limits = c(0, 1)) +
+  labs(
+    title = "Poder: Teste T vs. Bootstrap (n = 100)",
+    subtitle = "População Qui-quadrado",
+    x = expression(paste(mu)),
+    y = "Poder"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "bottom")

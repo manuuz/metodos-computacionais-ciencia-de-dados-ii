@@ -2,7 +2,9 @@
 title: "Lista 04 de MCCD II"
 author: "Emanuelle, Maria Luiza e Mariana Fleming"
 date: "`r Sys.Date()`"
-output: pdf_document
+output:
+  html_document:
+    df_print: paged
 ---
 
 ```{r setup, include=FALSE}
@@ -21,6 +23,106 @@ c) Outra distribuição de sua escolha.
 
 Compare com o valor teórico nas três situações.
 
+```{r se-bias}
+M <- 10000  
+size <- c(10, 50)
+
+metrics <- function(n, dist_func, true_mean, true_sd, dist_name) {
+  sample_means <- replicate(M, mean(dist_func(n)))
+  
+  est_bias <- mean(sample_means) - true_mean
+  est_se <- sd(sample_means)
+  
+  
+  the_bias <- 0
+  the_se <- true_sd / sqrt(n)
+  
+  return(data.frame(
+    Distribuicao = dist_name,
+    n = n,
+    Vies_Estimado = round(est_bias, 5),
+    Vies_Teorico = the_bias,
+    SE_Estimado = round(est_se, 5),
+    SE_Teorico = round(the_se, 5)
+  ))
+}
+```
+
+a) $X \sim N(0, \sigma^2)$  
+
+```{r se-bias-a}
+sigma <- 1
+mu <- 0
+
+distribution <- function(n) rnorm(n, mean = mu, sd = sigma)
+
+rn_10 <- metrics(10, distribution, mu, sigma, "Normal(0,1)")
+rn_50 <- metrics(50, distribution, mu, sigma, "Normal(0,1)")
+
+tabela <- data.frame(
+  Distribuicao = c(rn_10$Distribuicao, rn_50$Distribuicao),
+  Tamanho = c(rn_10$n, rn_50$n),
+  Vies.Teorico = c(rn_10$Vies_Teorico, rn_50$Vies_Teorico),
+  Vies.Estimado = c(rn_10$Vies_Estimado, rn_50$Vies_Estimado),
+  SE.Teorico = c(rn_10$SE_Teorico, rn_50$SE_Teorico),
+  SE.Estimado = c(rn_10$SE_Estimado, rn_50$SE_Estimado)
+)
+
+kable(tabela)
+```
+
+b) $X \sim \text{Gama}(2, 5)$  
+
+```{r se-bias-b}
+a <- 2
+b <- 5
+mu <- a / b
+sigma <- sqrt(a / (b^2))
+
+distribution <- function(n) rgamma(n, shape = a, rate = b)
+
+rn_10 <- metrics(10, distribution, mu, sigma, "Gama(2,5)")
+rn_50 <- metrics(50, distribution, mu, sigma, "Gama(2,5)")
+
+tabela <- data.frame(
+  Distribuicao = c(rn_10$Distribuicao, rn_50$Distribuicao),
+  Tamanho = c(rn_10$n, rn_50$n),
+  Vies.Teorico = c(rn_10$Vies_Teorico, rn_50$Vies_Teorico),
+  Vies.Estimado = c(rn_10$Vies_Estimado, rn_50$Vies_Estimado),
+  SE.Teorico = c(rn_10$SE_Teorico, rn_50$SE_Teorico),
+  SE.Estimado = c(rn_10$SE_Estimado, rn_50$SE_Estimado)
+)
+
+kable(tabela)
+```
+
+c) $X \sim \text{Beta}(2, 2)$
+
+```{r se-bias-b}
+alpha <- 2
+beta <- 2
+
+mu <- alpha / (alpha + beta)
+var <- (alpha * beta) / ((alpha + beta)^2 * (alpha + beta + 1))
+sigma <- sqrt(var)
+
+distribution <- function(n) rbeta(n, shape1 = alpha, shape2 = beta)
+
+rn_10 <- metrics(10, distribution, mu, sigma, "Beta(2,2)")
+rn_50 <- metrics(50, distribution, mu, sigma, "Beta(2,2)")
+
+tabela <- data.frame(
+  Distribuicao = c(rn_10$Distribuicao, rn_50$Distribuicao),
+  Tamanho = c(rn_10$n, rn_50$n),
+  Vies.Teorico = c(rn_10$Vies_Teorico, rn_50$Vies_Teorico),
+  Vies.Estimado = c(rn_10$Vies_Estimado, rn_50$Vies_Estimado),
+  SE.Teorico = c(rn_10$SE_Teorico, rn_50$SE_Teorico),
+  SE.Estimado = c(rn_10$SE_Estimado, rn_50$SE_Estimado)
+)
+
+kable(tabela)
+```
+
 # Questão 02
 
 Considere os seguintes estimadores para variância populacional:
@@ -33,6 +135,100 @@ Gere amostras de tamanho $n = 30$ e estime erro padrão e viés com estes estima
 a) $X \sim N(0, \sigma^2)$  
 b) $X \sim \text{Gama}(2, 5)$  
 c) Outra distribuição de sua escolha.
+
+```{r var-comp}
+set.seed(123)
+R <- 10000   
+n <- 30
+
+comp_vars <- function(r_func, true_var, dist_name) {
+  samples <- matrix(r_func(n * R), ncol = R)
+ 
+  est1_val <- apply(samples, 2, var)
+  est2_val <- est1_val * (n - 1) / n
+ 
+  bias1 <- mean(est1_val) - true_var
+  se1 <- sd(est1_val)
+  
+  bias2 <- mean(est2_val) - true_var
+  se2 <- sd(est2_val)
+  
+  return(data.frame(
+    Distribuicao = dist_name,
+    Verdadeira_Var = true_var,
+    Est1_Vies = round(bias1, 5),
+    Est1_SE = round(se1, 5),
+    Est2_Vies = round(bias2, 5),
+    Est2_SE = round(se2, 5)
+  ))
+}
+
+kable(tabela)
+
+```
+
+a) $X \sim N(0, \sigma^2)$  
+
+```{r var-comp-a}
+normal <- comp_vars(
+  function(x) rnorm(x, mean=0, sd=1), 
+  true_var = 1, 
+  dist_name = "Normal(0,1)"
+)
+
+tabela <- data.frame(
+  Distribuicao = normal$Distribuicao,
+  Var.verdadeira = normal$Verdadeira_Var,
+  Vies.Est1 = normal$Est1_Vies,
+  SE.Est1 = normal$Est1_SE,
+  Vies.Est2 = normal$Est2_Vies,
+  SE.Est2 = normal$Est2_SE
+)
+
+kable(tabela)
+
+```
+
+b) $X \sim \text{Gama}(2, 5)$  
+
+```{r var-comp-b}
+gama <- comp_vars(
+  function(x) rgamma(x, shape=2, rate=5), 
+  true_var = 0.08, 
+  dist_name = "Gama(2,5)"
+)
+
+tabela <- data.frame(
+  Distribuicao = gama$Distribuicao,
+  Var.verdadeira = gama$Verdadeira_Var,
+  Vies.Est1 = gama$Est1_Vies,
+  SE.Est1 = gama$Est1_SE,
+  Vies.Est2 = gama$Est2_Vies,
+  SE.Est2 = gama$Est2_SE
+)
+
+kable(tabela)
+
+```
+
+c) $X \sim \text{Beta}(2, 2)$c) $X \sim \text{Beta}(2, 2)$
+
+```{r var-comp-c}
+beta <- comp_vars(
+  function(x) rbeta(x, shape1=2, shape2=2), 
+  true_var = 0.05, 
+  dist_name = "Beta(2,2)"
+)
+
+tabela <- data.frame(
+  Distribuicao = beta$Distribuicao,
+  Var.verdadeira = beta$Verdadeira_Var,
+  Vies.Est1 = beta$Est1_Vies,
+  SE.Est1 = beta$Est1_SE,
+  Vies.Est2 = beta$Est2_Vies,
+  SE.Est2 = beta$Est2_SE
+)
+```
 
 # Questão 03
 

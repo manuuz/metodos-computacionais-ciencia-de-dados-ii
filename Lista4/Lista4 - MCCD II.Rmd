@@ -393,9 +393,207 @@ kable(resultado)
 
 Os resultados ficaram próximos, o que confirma que o código está performando bem.
 
-# QUestão 04
+# Questão 04
 
 Faça um estudo de Monte Carlo para comparar a probabilidade de cobertura dos intervalos de confiança bootstrap para a média populacional gerando amostras das distribuições Normal e Lognormal. Para as duas distribuições, utilize tamanhos amostrais iguais a 20, 50 e 150. Considere 4 métodos bootstrap de sua escolha para a obtenção dos intervalos de confiança e também compare com a probabilidade de cobertura do intervalo paramétrico com a $t$-Student.
+
+## Solução
+
+### Passo a passo
+
+Para cada distribuição (Normal, Lognormal)  
+e para cada tamanho amostral (n = 20, 50, 150):
+
+1. Repetimos o experimento de Monte Carlo:
+
+   - Gerar uma amostra `x` da distribuição especificada.  
+   - Calcular a média amostral $\hat{\theta}$ = mean(x).  
+   - Gerar amostras bootstrap e obter:  
+        * médias bootstrap `mean(x*)`  
+        * erros padrão bootstrap `sd(x*)/sqrt(n)` (para o método studentized).  
+   - Construir os seguintes intervalos de confiança:  
+   
+        * **IC t-Student paramétrico:** Usa a fórmula clássica baseada na normalidade e no erro-padrão amostral.  
+        
+        * **IC bootstrap percentile:** Usa diretamente os percentis da distribuição bootstrap das estatísticas. É simples, mas tende a falhar quando há viés ou forte assimetria  
+        
+        * **IC bootstrap basic:** Reflete o intervalo percentil em torno da estimativa observada. Corrige parcialmente o viés, mas ainda é instável.  
+        
+        * **IC bootstrap-t (studentized):** Padroniza a estatística usando o erro-padrão estimado em cada reamostragem. É mais estável e robusto  
+        
+        * **IC BCa: (Bias-Corrected and Accelerated)** Ajusta os limites percentis para corrigir viés e assimetria usando aceleração via jackknife. Funciona muito bem em cenários não simétricos
+        
+   - Verificar se cada IC contém a média populacional verdadeira.
+   
+2. Após todas as simulações, calculamos a **probabilidade de cobertura**  
+   como a proporção de simulações em que o IC incluiu a média real.
+   
+   
+```{r q4}
+set.seed(2025)
+
+# Número de simulações e de bootstraps
+n_sim <- 500
+B <- 500
+alpha <- 0.05
+
+# Intervalo BCa para a média
+
+ic_bca <- function(x, media_amostra, medias_boot, alpha = 0.05) {
+  # Viés do bootstrap
+  prop_menor <- mean(medias_boot < media_amostra)
+  prop_menor <- min(max(prop_menor, 1e-10), 1 - 1e-10)
+  z0 <- qnorm(prop_menor)
+
+  # Acelerador via jackknife
+  n <- length(x)
+  jack_means <- sapply(1:n, function(i) mean(x[-i]))
+  media_jack <- mean(jack_means)
+  num <- sum((media_jack - jack_means)^3)
+  den <- 6 * (sum((media_jack - jack_means)^2)^(3/2))
+  a <- ifelse(den == 0, 0, num / den)
+
+  # Ajustes dos limites
+  z_inf <- qnorm(alpha/2)
+  z_sup <- qnorm(1 - alpha/2)
+
+  p_inf <- pnorm(z0 + (z0 + z_inf) / (1 - a * (z0 + z_inf)))
+  p_sup <- pnorm(z0 + (z0 + z_sup) / (1 - a * (z0 + z_sup)))
+
+  # proteger para casos numéricos extremos
+  p_inf <- min(max(p_inf, 0), 1)
+  p_sup <- min(max(p_sup, 0), 1)
+
+  c(
+    quantile(medias_boot, p_inf, names = FALSE, type = 6),
+    quantile(medias_boot, p_sup, names = FALSE, type = 6)
+  )
+}
+
+# Calcula todos os intervalos de confiança
+
+calcular_ics <- function(x, B = 1000, alpha = 0.05) {
+  n <- length(x)
+  media_obs <- mean(x)
+  erro_padrao_obs <- sd(x) / sqrt(n)
+
+  # evita sd = 0 
+  if (!is.finite(erro_padrao_obs) || erro_padrao_obs == 0) {
+    erro_padrao_obs <- NA_real_
+  }
+
+  # Bootstrap da média e do erro padrão
+  medias_boot <- numeric(B)
+  erros_padrao_boot <- numeric(B)
+
+  for (b in 1:B) {
+    amostra_b <- sample(x, n, replace = TRUE)
+    medias_boot[b] <- mean(amostra_b)
+
+    sd_b <- sd(amostra_b)
+    erros_padrao_boot[b] <- ifelse(sd_b == 0, NA_real_, sd_b / sqrt(n))
+  }
+
+  # IC t paramétrico
+  ic_t <- if (!is.na(erro_padrao_obs)) {
+    media_obs + qt(1 - alpha/2, df = n - 1) * c(-1, 1) * erro_padrao_obs
+  } else c(NA, NA)
+
+  # IC percentile
+  ic_percentil <- quantile(medias_boot, c(alpha/2, 1 - alpha/2), type = 6, na.rm = TRUE)
+
+  # IC basic
+  ic_basic <- 2 * media_obs - rev(ic_percentil)
+
+  # IC studentized (bootstrap-t)
+  t_star <- (medias_boot - media_obs) / erros_padrao_boot
+  t_star <- t_star[is.finite(t_star)]
+
+  ic_t_star <- if (length(t_star) > 10 && !is.na(erro_padrao_obs)) {
+    q <- quantile(t_star,
+                  c(1 - alpha/2, alpha/2),
+                  type = 6, na.rm = TRUE)
+    sort(media_obs - q * erro_padrao_obs)
+  } else c(NA, NA)
+
+  # IC BCa
+  ic_bca_val <- tryCatch(
+    ic_bca(x, media_obs, medias_boot, alpha),
+    error = function(e) c(NA, NA)
+  )
+
+  list(
+    t = ic_t,
+    percentil = ic_percentil,
+    basic = ic_basic,
+    t_estrela = ic_t_star,
+    bca = ic_bca_val
+  )
+}
+
+# Roda uma configuração (dist × n)
+
+rodar_simulacao <- function(distribuicao, n, n_sim, B, alpha, parametros) {
+  # Função geradora e média verdadeira
+  if (distribuicao == "normal") {
+    gerar <- function(n) rnorm(n, parametros$media, parametros$sd)
+    media_verdadeira <- parametros$media
+  } else {
+    gerar <- function(n) rlnorm(n, parametros$media_log, parametros$sd_log)
+    media_verdadeira <- exp(parametros$media_log + parametros$sd_log^2 / 2)
+  }
+
+  cobertura <- matrix(FALSE, n_sim, 5)
+  colnames(cobertura) <- c("t", "percentil", "basic", "t_estrela", "bca")
+
+  # simulações
+  for (i in 1:n_sim) {
+    x <- gerar(n)
+    ics <- calcular_ics(x, B, alpha)
+
+    for (nome_ic in names(ics)) {
+      intervalo <- ics[[nome_ic]]
+
+      if (any(is.na(intervalo))) {
+        cobertura[i, nome_ic] <- NA
+      } else {
+        cobertura[i, nome_ic] <-
+          media_verdadeira >= intervalo[1] &&
+          media_verdadeira <= intervalo[2]
+      }
+    }
+  }
+
+  colMeans(cobertura, na.rm = TRUE)
+}
+
+# Tamanhos amostrais e distribuições
+
+ns <- c(20, 50, 150)
+distrs <- c("normal", "lognormal")
+
+param_normal <- list(media = 0, sd = 1, media_log = NA, sd_log = NA)
+param_lognorm <- list(media = NA, sd = NA, media_log = 0, sd_log = 1)
+
+resultados <- list()
+
+for (dist in distrs) {
+  for (n in ns) {
+    params <- if (dist == "normal") param_normal else param_lognorm
+    resultados[[paste(dist, n, sep = "_")]] <-
+      rodar_simulacao(dist, n, n_sim, B, alpha, params)
+  }
+}
+
+final <- do.call(rbind, resultados)
+kable(round(final, 4), caption = "Probabilidade de cobertura dos intervalos de confiança (Bootstrap × t-paramétrico)")
+
+```
+
+
+Os resultados indicam que, na distribuição **normal**, todos os métodos alcançam coberturas próximas ao esperado, mesmo para amostras pequenas, e a estabilidade aumenta com o tamanho da amostra. 
+
+Já na **lognormal**, especialmente com n = 20, a cobertura cai de forma mais evidente, porque a assimetria afeta métodos como **percentil** e **basic**. Com amostras maiores, o desempenho melhora, mas ainda permanece abaixo do cenário normal. Entre os métodos avaliados, **BCa** e **t-bootstrap** apresentam desempenho mais consistente nos casos com assimetria ou tamanhos amostrais menores.
 
 # Questão 05
 
@@ -520,6 +718,105 @@ O bootstrap não paramétrico apresenta um erro padrão muito próximo do EP ver
 # Questão 06
 
 Faça uma adaptação da função apresentada no Exemplo 4.11 (apostila em HTML) de tal forma que exista um argumento para definir o tipo de teste (bilateral, unilateral à esquerda ou unilateral à direita). Use um estudo Monte Carlo para estimar a **função poder** em um teste unilateral à esquerda, considerando diferentes tamanhos amostrais e gerando dados da distribuição Exponencial. Utilize o mesmo tamanho amostral para as duas amostras das populações comparadas, fixe o valor esperado da primeira população e altere o valor esperado da segunda população.
+
+## Solução
+
+Função de teste bootstrap adaptada para três tipos de hipóteses:
+
+```{r q6_1}
+teste_boot <- function(x, y, B = 500, tipo = "bilateral"){
+  t_obs <- t.test(x, y, var.equal = F)$statistic
+  
+  z <- c(x, y)
+  n <- length(x)
+  t_boot <- numeric(B)
+  
+  for(b in 1:B){
+    amostra <- sample(z, replace = T)
+    x_b <- amostra[1:n]
+    y_b <- amostra[-(1:n)]
+    t_boot[b] <- t.test(x_b, y_b, var.equal = F)$statistic
+  }
+  
+  # Cálculo do p-valor conforme o tipo de teste desejado
+  if(tipo == "bilateral"){
+    p_valor <- mean(abs(t_boot) >= abs(t_obs))
+  } else if(tipo == "esquerda"){
+    p_valor <- mean(t_boot <= t_obs)
+  } else if(tipo == "direita"){
+    p_valor <- mean(t_boot >= t_obs)
+  }
+  
+  return(p_valor)
+}
+
+```
+
+
+Estudo Monte Carlo: Estimativa da Função Poder
+```{r q6_3}
+# Parâmetros para o estudo de simulação
+
+ns <- c(20, 50)                # tamanhos de amostra 
+mu1 <- 5                       # média da primeira distribuição exponencial
+mu2_vals <- c(5, 6, 7, 8)      # valores de média para a segunda distribuição
+M <- 500                       # n de simulações
+B <- 500                       # n de réplicas bootstraps
+
+# Tabela para armazenar as proporções de rejeição
+resultados <- matrix(NA, nrow = length(ns), ncol = length(mu2_vals))
+rownames(resultados) <- paste0("n=", ns)
+colnames(resultados) <- paste0("mu2=", mu2_vals)
+
+# varre tamanhos de amostra e valores de mu2
+for(i in 1:length(ns)){
+  n <- ns[i]
+  
+  for(j in 1:length(mu2_vals)){
+    mu2 <- mu2_vals[j]
+    rejeicoes <- 0            # contador de rejeições da H0
+    
+    for(k in 1:M){
+      # Gera duas amostras exponenciais independentes
+      x <- rexp(n, rate = 1/mu1)
+      y <- rexp(n, rate = 1/mu2)
+      
+      # Calcula p-valor via bootstrap adaptado para teste unilateral à esquerda
+      p_val <- teste_boot(x, y, B, tipo = "esquerda")
+      
+      if(p_val <= 0.05){
+        rejeicoes <- rejeicoes + 1
+      }
+    }
+    
+    # Proporção de vezes em que H0 foi rejeitada
+    resultados[i, j] <- rejeicoes / M
+    }
+}
+
+
+df_poder <- as.data.frame(resultados) %>%
+  mutate(n = rownames(resultados)) %>%
+  pivot_longer(cols = starts_with("mu2"), 
+               names_to = "mu2", 
+               values_to = "poder")
+
+df_poder$mu2 <- as.numeric(gsub("mu2=", "", df_poder$mu2))
+df_poder$n <- as.numeric(gsub("n=", "", df_poder$n))
+```
+
+
+```{r q6_4, echo = FALSE}
+
+kable(resultados, digits = 3,
+      caption = "Estimativa da função poder para diferentes tamanhos amostrais",
+      longtable = FALSE, 
+      booktabs = TRUE)
+```
+
+Os resultados mostram que o poder do teste aumenta conforme a média da segunda população fica maior que a da primeira. Isso ocorre porque o teste é unilateral à esquerda $(\mu_1 < \mu_2)$, ou seja, quanto mais a segunda média cresce em relação à primeira, mais evidente fica a evidência a favor da hipótese alternativa. 
+
+Observa-se também que, com amostras maiores $(n=50)$, o teste detecta essa diferença com muito mais facilidade, fazendo a curva de poder subir rapidamente. Já com amostras pequenas $(n=20)$, o aumento do poder é mais lento devido à maior variabilidade amostral."
 
 # Questão 07
 
@@ -683,5 +980,6 @@ ggplot(df_plot2, aes(x = mu_real, y = Poder, color = Metodo)) +
   theme_minimal() +
   theme(legend.position = "bottom")
 ```
+
 
 O método não paramétrico usando bootstrap é melhor nesse caso, uma vez que não depende de hipóteses sobre a distribuição dos dados. A violação de suposição de normalidade tem um grave custo ao teste paramétrico $t$-Student.
